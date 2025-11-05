@@ -1,28 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Pangolin&family=Patrick+Hand&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 @import "tailwindcss";
 
 @layer base {
   /*  Default (Light) Theme */
   :root {
-    --black-100: #d9d9d9;
-    --black-200: #1e1e1e80;
-    --black-300: #1e1e1e;
+    --light-100: #ffffff;
+    --light-200: #f7f7f7;
+    --dark-100: #1f1f1f;
+    --dark-200: #636363;
+    --dark-300: #e6e6e6;
+    --border-100: #636363;
   }
-}
-
-@theme {
-  --color-black-100: var(--black-100);
-  --color-black-200: var(--black-200);
-  --color-black-300: var(--black-300);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #f7f7f7;
+    --foreground: #f7f7f7;
   }
 }
 
 body {
-  background: white;
-  color: black;
+  background: #f7f7f7;
+  color: #1f1f1f;
+  font-family: "Plus Jakarta Sans", sans-serif;
 }

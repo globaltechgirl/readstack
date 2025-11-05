@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import PrivateLayout from "@/component/layout/privateLayout";
+import Register from "@/pages/auth/register";
 import Login from "@/pages/auth/login";
 import Home from "@/pages/home";
 import AuthGuard from "@/router/authGuard";
@@ -10,6 +11,10 @@ const router = createBrowserRouter([
   {
     path: ROUTES.AUTH.LOGIN,
     element: <Login />,
+  },
+  {
+    path: ROUTES.AUTH.REGISTER,
+    element: <Register />,
   },
   {
     path: "/",
