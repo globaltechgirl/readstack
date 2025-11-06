@@ -13,8 +13,8 @@ export const ROUTES = {
     LOGIN: "/login",
     REGISTER: "/register",
   },
-  OVERVIEW: "/overview",
   HOME: "/home",
+  OVERVIEW: "/overview",
   BOOKS: {
     ROOT: "/books",
     VIEW_ALL: "/books/view-all",
@@ -40,8 +40,8 @@ export const ROUTES = {
 
 export const NavLinks = [
   {
-    label: "Home",
-    link: ROUTES.HOME,
+    label: "Overview",
+    link: ROUTES.OVERVIEW,
     icon: HomeIcon,
   },
   {

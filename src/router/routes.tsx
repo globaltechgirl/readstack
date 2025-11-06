@@ -3,8 +3,8 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import PrivateLayout from "@/component/layout/privateLayout";
 import Register from "@/pages/auth/register";
 import Login from "@/pages/auth/login";
+import Home from "@/pages/home";
 import Overview from "@/pages/overview";
-import Home from "@/pages/overview";
 import Books from "@/pages/books";
 import Shelves from "@/pages/shelves";
 import Bookmark from "@/pages/bookmark";
@@ -24,8 +24,8 @@ const router = createBrowserRouter([
     element: <Register />,
   },
   {
-    path: ROUTES.OVERVIEW,
-    element: <Overview />,
+    path: ROUTES.HOME,
+    element: <Home />,
   },
   {
     path: "/",
@@ -35,7 +35,7 @@ const router = createBrowserRouter([
         element: <PrivateLayout />,
         children: [
           { path: "", element: <Navigate to="home" replace /> },
-          { path: "home", element: <Home /> },
+          { path: "overview", element: <Overview /> },
           { path: "books", element: <Books /> },
           { path: "shelves", element: <Shelves /> },
           { path: "Bookmark", element: <Bookmark /> },
