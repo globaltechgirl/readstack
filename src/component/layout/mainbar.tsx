@@ -199,7 +199,7 @@ const Mainbar: FC = () => {
       <Box style={styles.topSection}>
         <Box style={styles.navLinks}>
           {NavLinks.map(({ label, link, icon: Icon, subNav }) => {
-            const addGapAfter = [ROUTES.HOME, ROUTES.BOOKMARK.ROOT];
+            const addGapAfter = [ROUTES.OVERVIEW, ROUTES.BOOKMARK.ROOT];
             const isGapAfter = addGapAfter.includes(link);
 
             return (

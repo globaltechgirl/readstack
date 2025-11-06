@@ -63,7 +63,7 @@ const Sidebar: FC = () => {
 
         <Box style={styles.navLinks}>
           {NavLinks.map(({ link, icon: Icon }) => {
-            const addGapAfter = [ROUTES.HOME, ROUTES.BOOKMARK.ROOT];
+            const addGapAfter = [ROUTES.OVERVIEW, ROUTES.BOOKMARK.ROOT];
             const isGapAfter = addGapAfter.includes(link);
 
             return (
