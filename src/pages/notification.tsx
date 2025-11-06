@@ -1,5 +1,5 @@
 import { Stack } from "@mantine/core";
-
+import Info from "@/component/layout/info";
 
 function Notification() {
   return (
@@ -13,7 +13,7 @@ function Notification() {
         backgroundColor: "var(--white)",
       }}
     >
-      Hey
+      <Info />
     </Stack>
   );
 }

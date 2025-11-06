@@ -79,7 +79,7 @@ const styles: Record<string, CSSProperties> = {
     flexDirection: "row",
     backgroundColor: "var(--light-100)",
     borderRadius: 10,
-    padding: "8px 20px",
+    padding: "4px 4px 8px 14px",
     gap: 5,
     height: "100%",
   },

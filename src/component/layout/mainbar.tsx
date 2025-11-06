@@ -137,8 +137,8 @@ const styles: Record<string, CSSProperties> = {
   userInfo: { 
     display: "flex", 
     flexDirection: "column", 
-    gap: 0, 
-    letterSpacing: "0.1px" 
+    gap: 1, 
+    letterSpacing: 0.1, 
   },
   userName: { 
     fontSize: 8.5, 
@@ -211,7 +211,7 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
         <Box style={styles.logoBox}>
           <img src={Logo} alt="Readstack Logo" style={styles.logoIcon} />
           <Box onClick={onSidebarClick} style={{ cursor: "pointer" }}>
-            <SidebarIcon width={12} height={12} />
+            <SidebarIcon width={13} height={13} />
           </Box>
         </Box>
 
@@ -301,7 +301,7 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
           }}
         >
           <Box style={styles.userBox}>
-            <Avatar radius="6" size={30} />
+            <Avatar radius="6" size={32} />
             <Box style={styles.userInfo}>
               <Text style={styles.userName}>Onyinye Ofili</Text>
               <Text style={styles.userEmail}>onyinyeofili209@gmail.com</Text>
