@@ -1,6 +1,7 @@
 import type { FC, CSSProperties } from "react";
 import { Paper, Title, Stack, Text, Anchor } from "@mantine/core";
 import Logo from "@/assets/logo.svg";
+import SliderImg from "@/assets/sliderimg.svg";
 import LoginForm from "@/component/auth/loginForm";
 
 const styles: Record<string, CSSProperties> = {
@@ -76,23 +77,10 @@ const styles: Record<string, CSSProperties> = {
     overflow: "hidden",
     backgroundColor: "var(--dark-300)"
   },
-  layoutContainer: { 
-    position: "relative", 
-    width: "115%", 
-    height: "100%", 
-    display: "flex", 
-    justifyContent: "center", 
-    alignItems: "center",
-    backgroundColor: "var(--dark-300)"
-  },
-  layoutBg: { 
-    position: "absolute", 
-    inset: 0, 
-    width: "100%", 
-    height: "100%", 
-    objectFit: "cover", 
-    objectPosition: "center", 
-    zIndex: 1 
+  sliderImg: { 
+    width: 650, 
+    height: "auto",
+    paddingTop: 50
   },
 };
 
@@ -123,9 +111,7 @@ const Login: FC = () => {
       </div>
 
       <div style={styles.rightPanel}>
-        <div style={styles.layoutContainer}>
-          
-        </div>
+        <img src={SliderImg} alt="Logo" width={650} style={styles.sliderImg}/>
       </div>
     </div>
   );

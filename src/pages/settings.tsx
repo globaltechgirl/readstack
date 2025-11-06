@@ -1,7 +1,7 @@
 import { Stack } from "@mantine/core";
 
 
-function Home() {
+function Settings() {
   return (
     <Stack
       gap="xl"
@@ -18,4 +18,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Settings;

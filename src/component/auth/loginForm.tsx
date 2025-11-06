@@ -1,6 +1,7 @@
 import { useState, type FC, type CSSProperties } from "react";
 import { Stack, Button, Anchor } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { useNavigate } from "react-router-dom";
 import { IconEye, IconEyeOff, IconCheck } from "@tabler/icons-react";
 import GoogleLogo from "@/assets/google.png";
 
@@ -26,12 +27,6 @@ const styles: Record<string, CSSProperties> = {
     outline: "none",
     transition: "border-color 0.2s, box-shadow 0.2s",
     boxSizing: "border-box",
-  },
-  error: { 
-    color: "red", 
-    fontSize: 9.5, 
-    fontWeight: 450, 
-    marginTop: 4 
   },
   passwordWrapper: { 
     position: "relative", 
@@ -123,9 +118,10 @@ interface PasswordInputProps {
   value: string;
   onChange: (val: string) => void;
   error?: string;
+  hasError?: boolean;
 }
 
-const PasswordInput: FC<PasswordInputProps> = ({ value, onChange, error }) => {
+const PasswordInput: FC<PasswordInputProps> = ({ value, onChange, hasError }) => {
   const [show, setShow] = useState(false);
   return (
     <div style={styles.inputWrapper}>
@@ -136,7 +132,7 @@ const PasswordInput: FC<PasswordInputProps> = ({ value, onChange, error }) => {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Enter your password"
-          style={{ ...styles.input, borderColor: error ? "red" : "#ccc", paddingRight: 32 }}
+          style={{ ...styles.input, borderColor: hasError ? "red" : "var(--dark-100)", paddingRight: 32 }}
         />
         {show ? (
           <IconEyeOff size={14} stroke={1.5} style={styles.toggleIcon} onClick={() => setShow(false)} color="var(--dark-200)" />
@@ -144,7 +140,6 @@ const PasswordInput: FC<PasswordInputProps> = ({ value, onChange, error }) => {
           <IconEye size={14} stroke={1.5} style={styles.toggleIcon} onClick={() => setShow(true)} color="var(--dark-200)" />
         )}
       </div>
-      {error && <span style={styles.error}>{error}</span>}
     </div>
   );
 };
@@ -165,6 +160,7 @@ const CustomCheckbox: FC<CustomCheckboxProps> = ({ checked, onToggle, label }) =
 );
 
 const LoginForm: FC = () => {
+  const navigate = useNavigate(); 
   const [signInHover, setSignInHover] = useState(false);
   const [googleHover, setGoogleHover] = useState(false);
   const [remember, setRemember] = useState(false);
@@ -172,29 +168,30 @@ const LoginForm: FC = () => {
   const form = useForm({
     initialValues: { email: "", password: "" },
     validate: {
-      email: (val) => (/^\S+@\S+$/.test(val) ? null : "Invalid email"),
-      password: (val) => (val.length >= 6 ? null : "Password too short"),
+      email: (val) => (/^\S+@\S+$/.test(val) ? null : true),
+      password: (val) => (val.length >= 6 ? null : true),
     },
   });
 
+  const handleSubmit = (values: typeof form.values) => {
+    console.log(values);
+    navigate("/home"); 
+  };
+  
   return (
-    <form
-      style={{ width: "100%" }}
-      onSubmit={form.onSubmit((values) => console.log(values))}
-    >
+    <form style={{ width: "100%" }} onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap={20}>
         <div style={styles.inputWrapper}>
           <label style={styles.label}>Email</label>
           <input
             type="email"
             placeholder="Enter your email"
-            style={{ ...styles.input, borderColor: form.errors.email ? "red" : "#ccc" }}
+            style={{ ...styles.input, borderColor: form.errors.email ? "red" : "var(--dark-100)" }}
             {...form.getInputProps("email")}
           />
-          {form.errors.email && <span style={styles.error}>{form.errors.email}</span>}
         </div>
 
-        <PasswordInput value={form.values.password} onChange={(val) => form.setFieldValue("password", val)} error={form.errors.password ? String(form.errors.password) : undefined} />
+        <PasswordInput value={form.values.password} onChange={(val) => form.setFieldValue("password", val)} hasError={!!form.errors.password} />
 
         <div style={styles.checkRow}>
           <CustomCheckbox checked={remember} onToggle={() => setRemember(!remember)} label="Remember me" />
