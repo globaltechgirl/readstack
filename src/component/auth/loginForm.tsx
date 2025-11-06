@@ -175,7 +175,7 @@ const LoginForm: FC = () => {
 
   const handleSubmit = (values: typeof form.values) => {
     console.log(values);
-    navigate("/home"); 
+    navigate("/overview"); 
   };
   
   return (
