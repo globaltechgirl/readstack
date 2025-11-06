@@ -1,7 +1,7 @@
 import { Stack } from "@mantine/core";
 
 
-function Bookmark() {
+function Bookmarks() {
   return (
     <Stack
       gap="xl"
@@ -18,4 +18,4 @@ function Bookmark() {
   );
 }
 
-export default Bookmark;
+export default Bookmarks;

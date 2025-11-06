@@ -1,7 +1,7 @@
 import HomeIcon from "@/assets/icons/home.tsx";
 import BooksIcon from "@/assets/icons/books.tsx";
 import ShelvesIcon from "@/assets/icons/shelves.tsx";
-import BookmarkIcon from "@/assets/icons/bookmark.tsx";
+import BookmarksIcon from "@/assets/icons/bookmarks.tsx";
 import ProfileIcon from "@/assets/icons/profile.tsx";
 import NotificationIcon from "@/assets/icons/notification.tsx";
 import SettingsIcon from "@/assets/icons/settings.tsx";
@@ -28,10 +28,10 @@ export const ROUTES = {
     NON_FICTION: "/shelves/non-fiction",
     AUDIOBOOKS: "/shelves/audiobooks",
   },
-  BOOKMARK: {
-    ROOT: "/bookmark",
-    ADDITION: "/bookmark/addition",
-    SCHEDULE: "/bookmark/schedule",
+  BOOKMARKS: {
+    ROOT: "/bookmarks",
+    ADDITION: "/bookmarks/addition",
+    SCHEDULE: "/bookmarks/schedule",
   },
   PROFILE: "/profile",
   NOTIFICATION: "/notification",
@@ -67,11 +67,11 @@ export const NavLinks = [
   },
   {
     label: "Bookmark",
-    link: ROUTES.BOOKMARK.ROOT,
-    icon: BookmarkIcon,
+    link: ROUTES.BOOKMARKS.ROOT,
+    icon: BookmarksIcon,
     subNav: [
-      { label: "Addition", link: ROUTES.BOOKMARK.ADDITION },
-      { label: "Schedule", link: ROUTES.BOOKMARK.SCHEDULE },
+      { label: "Addition", link: ROUTES.BOOKMARKS.ADDITION },
+      { label: "Schedule", link: ROUTES.BOOKMARKS.SCHEDULE },
     ],
   },
   {

@@ -1,110 +1,111 @@
-import type { FC, CSSProperties } from "react";
-import { AppShell, Burger, Box } from "@mantine/core";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { type FC, type CSSProperties, useState } from "react";
+import { AppShell, Box } from "@mantine/core";
+import { motion, AnimatePresence } from "framer-motion";
 import { Outlet } from "react-router-dom";
 
-import Logo from "@/assets/logo.svg?react";
-import SideBar from "@/component/layout/sidebar";
+import Sidebar from "@/component/layout/sidebar";
 import Mainbar from "@/component/layout/mainbar";
 
-const PrivateLayout: FC = () => {
-  const [opened, { toggle }] = useDisclosure();
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+const SIDEBAR_WIDTH = 55;
+const MAINBAR_WIDTH = 200;
+const NAVBAR_PADDING = 10;
+const TRANSITION_DURATION = 0.3;
 
-  const styles: Record<string, CSSProperties> = {
-    appShell: {
-      backgroundColor: "var(--light-100)",
-      height: "100vh",
-      overflow: "hidden",
-    },
-    navbarWrapper: {
-      height: "100%",
-      backgroundColor: "var(--light-200)",
-      borderRadius: 10,
-      padding: 2,
-      display: "flex",
-      flexDirection: "column" as const,
-    },
-    navbarMain: {
-      flex: 1,
-      display: "flex",
-      flexDirection: "row" as const,
-      alignItems: "stretch",
-      backgroundColor: "var(--light-100)",
-      borderRadius: 8,
-      overflow: "hidden",
-      padding: 4,
-    },
-    sidebarWrapper: {
-      width: "25%",
-      maxWidth: 55,
-      minWidth: 55,
-      backgroundColor: "var(--light-100)",
-      display: "flex",
-      flexDirection: "column" as const,
-      justifyContent: "space-between",
-    },
-    mainbarWrapper: {
-      flex: 1, 
-      backgroundColor: "var(--light-200)",
-      border: "0.5px solid var(--dark-300)",
-      borderRadius: 8,
-      display: "flex",
-      flexDirection: "column" as const,
-      padding: 6,
-      overflow: "hidden",
-    },
-    mainWrapper: {
-      display: "flex",
-      flexDirection: "column" as const,
-      height: "100%",
-      overflow: "hidden",
-    },
-    mainBox: {
-      flex: 1,
-      display: "flex",
-      flexDirection: "row" as const,
-      backgroundColor: "var(--light-100)",
-      borderRadius: 10,
-      padding: 2,
-      gap: 5,
-      height: "100%",
-    },
-    contentWrapper: {
-      flex: 1,
-      minWidth: 0,
-      overflowY: "auto" as const,
-      overflowX: "hidden" as const,
-      scrollbarWidth: "none",
-      msOverflowStyle: "none",
-    },
-  };
+const styles: Record<string, CSSProperties> = {
+  appShell: {
+    backgroundColor: "var(--light-100)",
+    height: "100vh",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "row",
+  },
+  navbarWrapper: {
+    position: "relative",
+    display: "flex",
+    flexDirection: "row",
+    height: "100%",
+    zIndex: 2,
+    backgroundColor: "var(--light-200)",
+    borderRadius: 10,
+    padding: 3,
+    transition: `width ${TRANSITION_DURATION}s ease-in-out`,
+  },
+  navbarMain: {
+    flex: 1,
+    display: "flex",
+    alignItems: "stretch",
+    backgroundColor: "var(--light-100)",
+    borderRadius: 8,
+    overflow: "hidden",
+    position: "relative",
+  },
+  sidebar: {
+    width: SIDEBAR_WIDTH,
+    backgroundColor: "var(--light-100)",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    zIndex: 3,
+  },
+  mainbar: {
+    position: "absolute",
+    left: SIDEBAR_WIDTH + 2,
+    top: 2,
+    bottom: 0,
+    width: MAINBAR_WIDTH,
+    backgroundColor: "var(--light-200)",
+    border: "0.5px solid var(--border-200)",
+    borderRadius: 8,
+    display: "flex",
+    flexDirection: "column",
+    padding: 6,
+    overflow: "hidden",
+    zIndex: 2,
+    height: "99.2%",
+  },
+  mainWrapper: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    backgroundColor: "var(--light-100)",
+    borderRadius: 10,
+    height: "100%",
+    transition: `margin-left ${TRANSITION_DURATION}s ease-in-out`,
+  },
+  mainContent: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "row",
+    backgroundColor: "var(--light-100)",
+    borderRadius: 10,
+    padding: "8px 20px",
+    gap: 5,
+    height: "100%",
+  },
+  contentArea: {
+    flex: 1,
+    minWidth: 0,
+    overflowY: "auto",
+    overflowX: "hidden",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+  },
+};
+
+const PrivateLayout: FC = () => {
+  const [mainbarOpen, setMainbarOpen] = useState(true);
+
+  const toggleMainbar = () => setMainbarOpen((prev) => !prev);
+
+  const navbarWidth = mainbarOpen
+    ? SIDEBAR_WIDTH + MAINBAR_WIDTH + NAVBAR_PADDING
+    : SIDEBAR_WIDTH;
+
+  const mainMarginLeft = navbarWidth;
 
   return (
-    <AppShell
-      padding={6}
-      navbar={{ width: 270, breakpoint: "sm", collapsed: { mobile: !opened } }}
-      style={styles.appShell}
-    >
-      {isSmallScreen && (
-        <AppShell.Header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: 8,
-          }}
-        >
-          <Logo width={25} height={25} />
-          <Burger
-            opened={opened}
-            onClick={toggle}
-            size={12}
-            color="var(--light-100)"
-          />
-        </AppShell.Header>
-      )}
-
+    <AppShell padding={6} style={styles.appShell}>
       <AppShell.Navbar
         p={5}
         pr={0}
@@ -113,27 +114,37 @@ const PrivateLayout: FC = () => {
           backgroundColor: "var(--light-100)",
         }}
       >
-        <Box style={styles.navbarWrapper}>
-          {/* Sidebar and Mainbar inside the same box */}
+        <Box style={{ ...styles.navbarWrapper, width: navbarWidth }}>
           <Box style={styles.navbarMain}>
-            <Box style={styles.sidebarWrapper}>
-              <SideBar />
+            <Box style={styles.sidebar}>
+              <Sidebar onLogoClick={toggleMainbar} />
             </Box>
 
-            <Box style={styles.mainbarWrapper}>
-              <Mainbar />
-            </Box>
+            <AnimatePresence initial={false}>
+              {mainbarOpen && (
+                <motion.div
+                  key="mainbar"
+                  initial={{ x: -MAINBAR_WIDTH, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -MAINBAR_WIDTH, opacity: 0 }}
+                  transition={{ duration: TRANSITION_DURATION, ease: "easeInOut" }}
+                  style={styles.mainbar}
+                >
+                  <Mainbar onSidebarClick={toggleMainbar} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Box>
         </Box>
       </AppShell.Navbar>
 
-      <AppShell.Main style={styles.mainWrapper}>
-        <Box style={styles.mainBox}>
-          <Box style={styles.contentWrapper}>
+      <Box style={{ ...styles.mainWrapper, marginLeft: mainMarginLeft }}>
+        <Box style={styles.mainContent}>
+          <Box style={styles.contentArea}>
             <Outlet />
           </Box>
         </Box>
-      </AppShell.Main>
+      </Box>
     </AppShell>
   );
 };

@@ -1,86 +1,93 @@
-import { type FC } from "react";
+import type { FC, CSSProperties } from "react";
 import { NavLink } from "react-router-dom";
 import { Box, Avatar } from "@mantine/core";
-
 import { NavLinks, ROUTES } from "@/utils/constants";
 import Logo from "@/assets/logo.svg";
 
-const styles = {
-  wrapper: { 
-    height: "100%", 
-    display: "flex", 
-    flexDirection: "column" as const, 
+const GAP_AFTER_LINKS = [ROUTES.OVERVIEW, ROUTES.BOOKMARKS.ROOT];
+
+const styles: Record<string, CSSProperties> = {
+  wrapper: {
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
     justifyContent: "space-between",
   },
-  topSection: { 
-    display: "flex", 
-    flexDirection: "column" as const, 
+  topSection: {
+    display: "flex",
+    flexDirection: "column",
     gap: 15,
   },
-  logoBox: { 
-    display: "flex", 
-    alignItems: "center", 
+  logoBox: {
+    display: "flex",
+    alignItems: "center",
     padding: 10,
+    cursor: "pointer",
   },
-  navLinks: { 
-    display: "flex", 
-    flexDirection: "column" as const, 
-    width: "100%", 
-    padding: 8,
+  logoIcon: {
+    width: 30,
+    height: 30,
+  },
+  navLinks: {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    padding: "8px 10px",
     gap: 5,
   },
-  userWrapper: { 
-    display: "flex", 
-    alignItems: "center", 
+  userWrapper: {
+    display: "flex",
+    alignItems: "center",
     justifyContent: "center",
     padding: 6,
   },
-  userInfo: { 
-    padding: 2, 
-    borderRadius: 8, 
-    backgroundColor: "var(--white)", 
-    border: "0.5px solid var(--border-100)", 
-    cursor: "pointer", 
+  userInfo: {
+    padding: 2,
+    borderRadius: 8,
+    backgroundColor: "var(--light-100)",
+    border: "0.5px solid var(--border-200)",
+    cursor: "pointer",
   },
-  userImg: { 
-    width: 30, 
-    height: 30, 
-    borderRadius: 8, 
-    backgroundColor: "var(--white)", 
-    border: "0.5px solid var(--border-100)", 
-    objectFit: "cover" as const, 
+  userImg: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: "var(--light-100)",
+    border: "0.5px solid var(--border-200)",
+    objectFit: "cover",
   },
 };
 
-const Sidebar: FC = () => {
+const getNavLinkStyle = (isActive: boolean): CSSProperties => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 8,
+  borderRadius: 6,
+  backgroundColor: isActive ? "var(--white)" : "transparent",
+  border: isActive ? "0.5px solid var(--border-100)" : "transparent",
+  transition: "all 0.2s ease",
+});
+
+interface SidebarProps {
+  onLogoClick: () => void;
+}
+
+const Sidebar: FC<SidebarProps> = ({ onLogoClick }) => {
   return (
     <Box style={styles.wrapper}>
-      {/* Top Section */}
       <Box style={styles.topSection}>
-        <Box style={styles.logoBox}>
-          <img src={Logo} alt="FifthLab Logo" style={{ width: 30, height: 20 }} />
+        <Box style={styles.logoBox} onClick={onLogoClick}>
+          <img src={Logo} alt="Readstack Logo" style={styles.logoIcon} />
         </Box>
 
         <Box style={styles.navLinks}>
           {NavLinks.map(({ link, icon: Icon }) => {
-            const addGapAfter = [ROUTES.OVERVIEW, ROUTES.BOOKMARK.ROOT];
-            const isGapAfter = addGapAfter.includes(link);
+            const isGapAfter = GAP_AFTER_LINKS.includes(link);
 
             return (
               <Box key={link} style={{ marginBottom: isGapAfter ? 12 : 0 }}>
-                <NavLink
-                  to={link}
-                  style={({ isActive }) => ({
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: 8,
-                    borderRadius: 6,
-                    backgroundColor: isActive ? "var(--white)" : "transparent",
-                    border: isActive ? "0.5px solid var(--border-100)" : "transparent",
-                    transition: "all 0.2s ease",
-                  })}
-                >
+                <NavLink to={link} style={({ isActive }) => getNavLinkStyle(isActive)}>
                   <Icon style={{ width: 12, height: 12 }} />
                 </NavLink>
               </Box>
@@ -89,7 +96,6 @@ const Sidebar: FC = () => {
         </Box>
       </Box>
 
-      {/* Bottom Section (Profile Image) */}
       <Box style={styles.userWrapper}>
         <Box style={styles.userInfo}>
           <Avatar radius="6" size={30} />
