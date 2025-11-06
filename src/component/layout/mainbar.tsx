@@ -271,7 +271,7 @@ const Mainbar: FC = () => {
                               : "var(--dark-200)",
                           })}
                         >
-                          <Text>{subLabel}</Text>
+                          <Text style={styles.dropdownText}>{subLabel}</Text>
                           <Box style={styles.countBox}>10</Box>
                         </NavLink>
                       ))}
