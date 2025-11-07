@@ -80,7 +80,7 @@ const styles: Record<string, CSSProperties> = {
   },
   bookImage: {
     width: "100%",
-    height: 180,
+    height: "auto",
     padding: 2,
     borderRadius: 8,
     border: "0.5px solid var(--border-200)",
