@@ -11,7 +11,7 @@ function Overview() {
         height: "100vh",
         padding: 2,
         paddingLeft: 0,
-        backgroundColor: "var(--white)",
+        backgroundColor: "var(--light-100)",
       }}
     >
       <Info />

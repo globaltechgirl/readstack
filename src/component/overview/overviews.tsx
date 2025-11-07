@@ -36,7 +36,7 @@ const styles: Record<string, CSSProperties> = {
     padding: 20,
     backgroundColor: "var(--light-200)",
     borderRadius: 6,
-    gap: 40,
+    gap: 45,
   },
   topSection: {
     display: "flex",
@@ -49,11 +49,6 @@ const styles: Record<string, CSSProperties> = {
     flexDirection: "column",
     gap: 10,
   },
-  greetingText: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: "var(--dark-100)",
-  },
   topLeftBox: {
     display: "flex",
     gap: 25,
@@ -64,6 +59,7 @@ const styles: Record<string, CSSProperties> = {
     height: 260,
     objectFit: "cover",
     border: "0.5px solid var(--border-200)",
+    backgroundColor: "var(--light-100)",
     borderRadius: 8,
     padding: 2,
     transform: "rotateY(-2deg)",
@@ -193,7 +189,7 @@ const styles: Record<string, CSSProperties> = {
   starRow: {
     display: "flex",
     alignItems: "center",
-    gap: 2,
+    gap: 1,
   },
   actionRow: {
     display: "flex",
@@ -282,6 +278,7 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: 5,
     padding: 2,
     border: "0.5px solid var(--border-200)",
+    backgroundColor: "var(--light-100)",
   },
   readingBookRow: {
     display: "flex",
@@ -309,8 +306,6 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-const username = "Harry";
-
 const currentBook = {
   title: "Fourth Wing",
   author: "Rebecca Yarrow",
@@ -335,9 +330,9 @@ const truncateSummary = (text: string, wordLimit: number) =>
 const BookCard: FC<{ book: typeof topPicks[number]; bookmarked: boolean; onToggle: () => void }> = ({ book, bookmarked, onToggle }) => {
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => {
-      if (rating >= i + 1) return <FullStarIcon key={i} width={12} height={12} color="var(--dark-200)" />;
-      if (rating >= i + 0.5) return <HalfStarIcon key={i} width={12} height={12} color="var(--dark-200)" />;
-      return <StarIcon key={i} width={12} height={12} color="var(--dark-200)" />;
+      if (rating >= i + 1) return <FullStarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
+      if (rating >= i + 0.5) return <HalfStarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
+      return <StarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
     });
   };
 
@@ -460,7 +455,6 @@ const Overviews: FC = () => {
       <Box style={styles.overviewsWrapper}>
         <Box style={styles.topSection}>
           <Box style={styles.topLeft}>
-            <Text style={styles.greetingText}>Happy reading, {username}!</Text>
             <Box style={styles.topLeftBox}>
               <Image src={currentBook.image} alt={currentBook.title} style={styles.bookImage} />
               <Box style={styles.bookInfo}>

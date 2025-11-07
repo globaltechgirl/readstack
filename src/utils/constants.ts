@@ -19,8 +19,9 @@ export const ROUTES = {
     ROOT: "/books",
     VIEW_ALL: "/books/view-all",
     RECENT: "/books/recent",
+    COMPLETED: "/books/completed",
+    WISHLIST: "/books/wishlist",
     FAVORITES: "/books/favorites",
-    SHARED: "/books/shared",
   },
   SHELVES: {
     ROOT: "/shelves",
@@ -52,8 +53,9 @@ export const NavLinks = [
     subNav: [
       { label: "View All", link: ROUTES.BOOKS.VIEW_ALL },
       { label: "Recent", link: ROUTES.BOOKS.RECENT },
+      { label: "Completed", link: ROUTES.BOOKS.COMPLETED },
+      { label: "Wishlist", link: ROUTES.BOOKS.WISHLIST },
       { label: "Favorites", link: ROUTES.BOOKS.FAVORITES },
-      { label: "Shared", link: ROUTES.BOOKS.SHARED },
     ],
   },
   {
