@@ -78,7 +78,10 @@ const styles: Record<string, CSSProperties> = {
     justifyContent: "center",
     cursor: "pointer",
   },
-  iconInner: { width: 11, height: 11 },
+  iconInner: {
+    width: 11, 
+    height: 11 
+  },
 };
 
 const Info: FC = () => {

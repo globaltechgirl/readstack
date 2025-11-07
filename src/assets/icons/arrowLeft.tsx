@@ -1,0 +1,19 @@
+import type { SVGProps } from "react";
+
+const ArrowLeftIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
+    {...props}
+  >
+    <g className="arrow-left-outline">
+      <g fill="currentColor" fillRule="evenodd" className="Vector" clipRule="evenodd">
+        <path fill="currentColor" fillRule="evenodd" d="M16.207 4.293a1 1 0 0 1 0 1.414L9.914 12l6.293 6.293a1 1 0 0 1-1.414 1.414L8.5 13.414a2 2 0 0 1 0-2.828l6.293-6.293a1 1 0 0 1 1.414 0" clipRule="evenodd" />
+      </g>
+    </g>
+  </svg>
+);
+
+export default ArrowLeftIcon;

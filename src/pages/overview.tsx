@@ -1,10 +1,11 @@
 import { Stack } from "@mantine/core";
 import Info from "@/component/layout/info";
+import Overviews from "@/component/overview/overviews";
 
 function Overview() {
   return (
     <Stack
-      gap="xl"
+      gap="10"
       style={{
         width: "100%",
         height: "100vh",
@@ -14,6 +15,7 @@ function Overview() {
       }}
     >
       <Info />
+      <Overviews />
     </Stack>
   );
 }
