@@ -1,5 +1,5 @@
 import { Stack } from "@mantine/core";
-import Info from "@/component/layout/info";
+import Fiction from "@/component/shelves/fiction";
 
 function Shelves() {
   return (
@@ -13,7 +13,7 @@ function Shelves() {
         backgroundColor: "var(--light-100)",
       }}
     >
-      <Info />
+      <Fiction />
     </Stack>
   );
 }

@@ -3,8 +3,8 @@ import { Box, Text, Image, Button, Flex, Stack } from "@mantine/core";
 
 import ArrowLeft from "@/assets/icons/arrowLeft";
 import ArrowRight from "@/assets/icons/arrowRight";
-import HeartFill from "@/assets/icons/heartFill";
-import HeartFull from "@/assets/icons/heartFull";
+import BookmarkFill from "@/assets/icons/bookmarkFill";
+import BookmarkFull from "@/assets/icons/bookmarkFull";
 
 import Book1 from "@/assets/book1.jpg";
 import Book2 from "@/assets/book2.jpg";
@@ -21,20 +21,20 @@ import Book12 from "@/assets/book12.jpg";
 import Info from "../layout/info";
 
 const styles: Record<string, CSSProperties> = {
-  wishlistBody: {
+  nonfictionBody: {
     width: "100%",
     height: "100vh",
     padding: 2,
     paddingLeft: 0,
     backgroundColor: "var(--white)",
   },
-  wishlistMain: {
+  nonfictionMain: {
     backgroundColor: "var(--light-100)",
     border: "0.5px solid var(--border-200)",
     borderRadius: 8,
     padding: 3,
   },
-  wishlistWrapper: {
+  nonfictionWrapper: {
     backgroundColor: "var(--light-200)",
     borderRadius: 6,
     display: "flex",
@@ -42,6 +42,32 @@ const styles: Record<string, CSSProperties> = {
     gap: 45,
     padding: 20,
     width: "100%",
+  },
+  filterBar: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: -20,
+  },
+  filterBox: {
+    backgroundColor: "var(--light-100)",
+    border: "0.5px solid var(--border-200)",
+    borderRadius: 8,
+    padding: 2,
+  },
+  filterButton: {
+    fontSize: 8.5,
+    fontWeight: 550,
+    padding: "3px 10px",
+    backgroundColor: "var(--light-200)",
+    borderRadius: 6,
+    cursor: "pointer",
+    color: "var(--dark-200)",
+    transition: "all 0.25s ease",
+  },
+  filterButtonActive: {
+    backgroundColor: "var(--dark-300)",
+    color: "var(--dark-100)",
   },
   booksGrid: {
     display: "grid",
@@ -144,23 +170,6 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 9.5,
     fontWeight: 500,
   },
-  startContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 5,
-    width: "fit-content",
-    backgroundColor: "var(--light-100)",
-    border: "0.5px solid var(--border-200)",
-    borderRadius: 6,
-    padding: "2px 6px",
-    cursor: "pointer",
-  },
-  startText: {
-    fontSize: 8,
-    fontWeight: 500,
-    color: "var(--dark-200)",
-  },
   paginationContainer: {
     display: "flex",
     justifyContent: "flex-end",
@@ -200,14 +209,34 @@ const allBooks = [
   { title: "One Golden Summer", author: "Carley Fortune", image: Book12, genre: "Romance" },
 ];
 
-const Wishlist: FC = () => {
+const genres = [
+  "All",
+  "Biography",
+  "Self-Help",
+  "Motivational",
+  "History",
+  "Science & Technology",
+  "Business",
+  "Psychology",
+  "Health & Wellness",
+  "Philosophy",
+  "Spirituality",
+];
+
+const NonFiction: FC = () => {
   const [page, setPage] = useState(1);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState("All");
+
+  const filteredBooks =
+    selectedGenre === "All"
+      ? allBooks
+      : allBooks.filter((book) => book.genre.toLowerCase() === selectedGenre.toLowerCase());
 
   const booksPerPage = 12;
-  const totalPages = Math.ceil(allBooks.length / booksPerPage);
-  const currentBooks = allBooks.slice((page - 1) * booksPerPage, page * booksPerPage);
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+  const currentBooks = filteredBooks.slice((page - 1) * booksPerPage, page * booksPerPage);
 
   const toggleFavorite = (idx: number) =>
     setFavorites((prev) =>
@@ -218,11 +247,31 @@ const Wishlist: FC = () => {
   const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
 
   return (
-    <Stack gap="10" style={styles.wishlistBody}>
+    <Stack gap="10" style={styles.nonfictionBody}>
       <Info />
 
-      <Box style={styles.wishlistMain}>
-        <Box style={styles.wishlistWrapper}>
+      <Box style={styles.nonfictionMain}>
+        <Box style={styles.nonfictionWrapper}>
+          <Flex style={styles.filterBar}>
+            {genres.map((genre) => (
+              <Box style={styles.filterBox}>
+                <Box
+                  key={genre}
+                  style={{
+                    ...styles.filterButton,
+                    ...(selectedGenre === genre ? styles.filterButtonActive : {}),
+                  }}
+                  onClick={() => {
+                  setSelectedGenre(genre);
+                  setPage(1);
+                  }}
+                >
+                  {genre}
+                </Box>
+              </Box>
+            ))}
+          </Flex>
+
           <Box style={styles.booksGrid}>
             {currentBooks.map((book, idx) => (
               <Box
@@ -246,9 +295,9 @@ const Wishlist: FC = () => {
                   >
                     <Box onClick={() => toggleFavorite(idx)}>
                       {favorites.includes(idx) ? (
-                        <HeartFull style={styles.overlayIcon} />
+                        <BookmarkFull style={styles.overlayIcon} />
                       ) : (
-                        <HeartFill style={styles.overlayIcon} />
+                        <BookmarkFill style={styles.overlayIcon} />
                       )}
                     </Box>
                   </Box>
@@ -257,10 +306,6 @@ const Wishlist: FC = () => {
                 <Box style={styles.bookTexts}>
                   <Text style={styles.bookTitle}>{book.title}</Text>
                   <Text style={styles.bookAuthor}>{book.author}</Text>
-
-                  <Box style={styles.startContainer}>
-                    <Text style={styles.startText}>Start reading</Text>
-                  </Box>
                 </Box>
               </Box>
             ))}
@@ -297,4 +342,4 @@ const Wishlist: FC = () => {
   );
 };
 
-export default Wishlist;
+export default NonFiction;

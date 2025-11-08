@@ -14,9 +14,9 @@ import WishlistBooks from "@/component/books/wishlist";
 import FavoritesBooks from "@/component/books/favorites";
 
 import Shelves from "@/pages/shelves";
-import FictionShelves from "@/component/books/all";
-import NonFictionShelves from "@/component/books/all";
-import AudiobooksShelves from "@/component/books/all";
+import FictionShelves from "@/component/shelves/fiction";
+import NonFictionShelves from "@/component/shelves/nonFiction";
+import AudiobooksShelves from "@/component/shelves/audiobooks";
 
 import Bookmarks from "@/pages/bookmarks";
 import AdditionBookmarks from "@/component/books/all";

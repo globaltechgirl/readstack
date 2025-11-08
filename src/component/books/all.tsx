@@ -121,7 +121,6 @@ const styles: Record<string, CSSProperties> = {
     color: "var(--dark-200)",
     fontSize: 8.5,
     fontWeight: 550,
-    letterSpacing: 0.2,
     padding: "2px 35px 2px 40px",
     textAlign: "center",
     textTransform: "capitalize",

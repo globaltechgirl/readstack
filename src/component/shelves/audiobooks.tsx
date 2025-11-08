@@ -3,8 +3,8 @@ import { Box, Text, Image, Button, Flex, Stack } from "@mantine/core";
 
 import ArrowLeft from "@/assets/icons/arrowLeft";
 import ArrowRight from "@/assets/icons/arrowRight";
-import HeartFill from "@/assets/icons/heartFill";
-import HeartFull from "@/assets/icons/heartFull";
+import BookmarkFill from "@/assets/icons/bookmarkFill";
+import BookmarkFull from "@/assets/icons/bookmarkFull";
 
 import Book1 from "@/assets/book1.jpg";
 import Book2 from "@/assets/book2.jpg";
@@ -21,20 +21,20 @@ import Book12 from "@/assets/book12.jpg";
 import Info from "../layout/info";
 
 const styles: Record<string, CSSProperties> = {
-  wishlistBody: {
+  audiobooksBody: {
     width: "100%",
     height: "100vh",
     padding: 2,
     paddingLeft: 0,
     backgroundColor: "var(--white)",
   },
-  wishlistMain: {
+  audiobooksMain: {
     backgroundColor: "var(--light-100)",
     border: "0.5px solid var(--border-200)",
     borderRadius: 8,
     padding: 3,
   },
-  wishlistWrapper: {
+  audiobooksWrapper: {
     backgroundColor: "var(--light-200)",
     borderRadius: 6,
     display: "flex",
@@ -46,7 +46,7 @@ const styles: Record<string, CSSProperties> = {
   booksGrid: {
     display: "grid",
     gap: 10,
-    gridTemplateColumns: "repeat(6, 1fr)",
+    gridTemplateColumns: "repeat(4, 1fr)",
     width: "100%",
   },
   bookCard: {
@@ -79,7 +79,7 @@ const styles: Record<string, CSSProperties> = {
   },
   bookImage: {
     width: "100%",
-    height: "auto",
+    height: 160,
     padding: 2,
     borderRadius: 8,
     border: "0.5px solid var(--border-200)",
@@ -144,23 +144,6 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 9.5,
     fontWeight: 500,
   },
-  startContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 5,
-    width: "fit-content",
-    backgroundColor: "var(--light-100)",
-    border: "0.5px solid var(--border-200)",
-    borderRadius: 6,
-    padding: "2px 6px",
-    cursor: "pointer",
-  },
-  startText: {
-    fontSize: 8,
-    fontWeight: 500,
-    color: "var(--dark-200)",
-  },
   paginationContainer: {
     display: "flex",
     justifyContent: "flex-end",
@@ -200,7 +183,7 @@ const allBooks = [
   { title: "One Golden Summer", author: "Carley Fortune", image: Book12, genre: "Romance" },
 ];
 
-const Wishlist: FC = () => {
+const Audiobooks: FC = () => {
   const [page, setPage] = useState(1);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -218,11 +201,11 @@ const Wishlist: FC = () => {
   const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
 
   return (
-    <Stack gap="10" style={styles.wishlistBody}>
+    <Stack gap="10" style={styles.audiobooksBody}>
       <Info />
 
-      <Box style={styles.wishlistMain}>
-        <Box style={styles.wishlistWrapper}>
+      <Box style={styles.audiobooksMain}>
+        <Box style={styles.audiobooksWrapper}>
           <Box style={styles.booksGrid}>
             {currentBooks.map((book, idx) => (
               <Box
@@ -246,9 +229,9 @@ const Wishlist: FC = () => {
                   >
                     <Box onClick={() => toggleFavorite(idx)}>
                       {favorites.includes(idx) ? (
-                        <HeartFull style={styles.overlayIcon} />
+                        <BookmarkFull style={styles.overlayIcon} />
                       ) : (
-                        <HeartFill style={styles.overlayIcon} />
+                        <BookmarkFill style={styles.overlayIcon} />
                       )}
                     </Box>
                   </Box>
@@ -257,10 +240,6 @@ const Wishlist: FC = () => {
                 <Box style={styles.bookTexts}>
                   <Text style={styles.bookTitle}>{book.title}</Text>
                   <Text style={styles.bookAuthor}>{book.author}</Text>
-
-                  <Box style={styles.startContainer}>
-                    <Text style={styles.startText}>Start reading</Text>
-                  </Box>
                 </Box>
               </Box>
             ))}
@@ -297,4 +276,4 @@ const Wishlist: FC = () => {
   );
 };
 
-export default Wishlist;
+export default Audiobooks;

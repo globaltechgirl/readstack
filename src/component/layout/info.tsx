@@ -1,4 +1,4 @@
-import type { FC, CSSProperties, SVGProps } from "react";
+import type { FC, CSSProperties } from "react";
 import { useState, useEffect } from "react";
 import { Box, Text } from "@mantine/core";
 import { motion, AnimatePresence } from "framer-motion";
@@ -85,23 +85,22 @@ const styles: Record<string, CSSProperties> = {
 };
 
 const Info: FC = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") === "dark";
+    }
+    return false;
+  });
 
   useEffect(() => {
-    document.body.classList.toggle("dark-theme", darkMode);
+    if (darkMode) {
+      document.body.classList.add("dark-theme");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.body.classList.remove("dark-theme");
+      localStorage.setItem("theme", "light");
+    }
   }, [darkMode]);
-
-  const AnimatedIcon: FC<{ active: boolean; Icon: FC<SVGProps<SVGSVGElement>> }> = ({ active, Icon }) => (
-    <motion.div
-        key={active ? "moon" : "sun"}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
-    >
-        <Icon width={styles.iconInner.width} height={styles.iconInner.height} />
-    </motion.div>
-    );
 
   return (
     <Box style={styles.infoMain}>
@@ -115,9 +114,35 @@ const Info: FC = () => {
           </Box>
 
           <Box style={styles.iconWrapper}>
-            <motion.div style={styles.iconBox} onClick={() => setDarkMode(!darkMode)} layout>
-              <AnimatePresence mode="wait">
-                {darkMode ? <AnimatedIcon active={darkMode} Icon={MoonIcon} /> : <AnimatedIcon active={darkMode} Icon={SunIcon} />}
+            <motion.div
+              style={styles.iconBox}
+              onClick={() => setDarkMode(!darkMode)}
+              layout
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={darkMode ? "moon" : "sun"}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {darkMode ? (
+                    <MoonIcon
+                      width={styles.iconInner.width}
+                      height={styles.iconInner.height}
+                    />
+                  ) : (
+                    <SunIcon
+                      width={styles.iconInner.width}
+                      height={styles.iconInner.height}
+                    />
+                  )}
+                </motion.div>
               </AnimatePresence>
             </motion.div>
           </Box>
