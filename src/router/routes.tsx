@@ -12,37 +12,31 @@ import RecentBooks from "@/component/books/recent";
 import CompletedBooks from "@/component/books/completed";
 import WishlistBooks from "@/component/books/wishlist";
 import FavoritesBooks from "@/component/books/favorites";
+import BookView from "@/component/books/view";
 
 import Shelves from "@/pages/shelves";
 import FictionShelves from "@/component/shelves/fiction";
 import NonFictionShelves from "@/component/shelves/nonFiction";
 import AudiobooksShelves from "@/component/shelves/audiobooks";
+import ShelfView from "@/component/shelves/view";
 
 import Bookmarks from "@/pages/bookmarks";
-import AdditionBookmarks from "@/component/books/all";
-import QuotesBookmarks from "@/component/books/all";
-import ScheduleBookmarks from "@/component/books/all";
+import AdditionBookmarks from "@/component/bookmark/addition";
+import QuotesBookmarks from "@/component/bookmark/addition";
+import ScheduleBookmarks from "@/component/bookmark/addition";
 
 import Profile from "@/pages/profile";
 import Notification from "@/pages/notification";
 import Settings from "@/pages/settings";
+
 import AuthGuard from "@/router/authGuard";
 import { ROUTES } from "@/utils/constants";
 
 const router = createBrowserRouter([
-  {
-    path: ROUTES.AUTH.LOGIN,
-    element: <Login />,
-  },
-  {
-    path: ROUTES.AUTH.REGISTER,
-    element: <Register />,
-  },
+  { path: ROUTES.AUTH.LOGIN, element: <Login /> },
+  { path: ROUTES.AUTH.REGISTER, element: <Register /> },
 
-  {
-    path: ROUTES.HOME,
-    element: <Home />,
-  },
+  { path: ROUTES.HOME, element: <Home /> },
 
   {
     path: "/",
@@ -51,20 +45,34 @@ const router = createBrowserRouter([
       {
         element: <PrivateLayout />,
         children: [
-          { path: "", element: <Navigate to="overview" replace /> },
+          { path: "", element: <Navigate to={ROUTES.OVERVIEW} replace /> },
           { path: "overview", element: <Overview /> },
 
           { path: "books", element: <Books /> },
           { path: "books/view-all", element: <AllBooks /> },
+          { path: "books/view-all/:id", element: <BookView /> },
+
           { path: "books/recent", element: <RecentBooks /> },
+          { path: "books/recent/:id", element: <BookView /> },
+
           { path: "books/completed", element: <CompletedBooks /> },
+          { path: "books/completed/:id", element: <BookView /> },
+
           { path: "books/wishlist", element: <WishlistBooks /> },
+          { path: "books/wishlist/:id", element: <BookView /> },
+
           { path: "books/favorites", element: <FavoritesBooks /> },
+          { path: "books/favorites/:id", element: <BookView /> },
 
           { path: "shelves", element: <Shelves /> },
           { path: "shelves/fiction", element: <FictionShelves /> },
+          { path: "shelves/fiction/:id", element: <ShelfView /> },
+
           { path: "shelves/non-fiction", element: <NonFictionShelves /> },
+          { path: "shelves/non-fiction/:id", element: <ShelfView /> },
+
           { path: "shelves/audiobooks", element: <AudiobooksShelves /> },
+          { path: "shelves/audiobooks/:id", element: <ShelfView /> },
 
           { path: "bookmarks", element: <Bookmarks /> },
           { path: "bookmarks/addition", element: <AdditionBookmarks /> },

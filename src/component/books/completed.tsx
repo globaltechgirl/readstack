@@ -1,5 +1,6 @@
 import { type FC, type CSSProperties, useState } from "react";
 import { Box, Text, Image, Button, Flex, Stack } from "@mantine/core";
+import { useNavigate } from "react-router-dom";
 
 import ArrowLeft from "@/assets/icons/arrowLeft";
 import ArrowRight from "@/assets/icons/arrowRight";
@@ -105,9 +106,11 @@ const styles: Record<string, CSSProperties> = {
     opacity: 0,
     transition: "opacity 0.25s ease",
     cursor: "pointer",
+    pointerEvents: "none",
   },
   overlayVisible: {
     opacity: 1,
+    pointerEvents: "auto",
   },
   overlayIcon: {
     width: 14,
@@ -199,6 +202,7 @@ const allBooks = [
 ];
 
 const Completed: FC = () => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -249,8 +253,9 @@ const Completed: FC = () => {
                       ...styles.overlay,
                       ...(hovered === idx ? styles.overlayVisible : {}),
                     }}
+                    onClick={() => navigate(`/books/completed/${idx}`, { state: book })}
                   >
-                    <Box onClick={() => toggleFavorite(idx)}>
+                    <Box onClick={(e) => {e.stopPropagation(); toggleFavorite(idx); }}>
                       {favorites.includes(idx) ? (
                         <HeartFull style={styles.overlayIcon} />
                       ) : (

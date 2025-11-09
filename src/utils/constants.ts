@@ -1,10 +1,10 @@
-import HomeIcon from "@/assets/icons/home.tsx";
-import BooksIcon from "@/assets/icons/books.tsx";
-import ShelvesIcon from "@/assets/icons/shelves.tsx";
-import BookmarksIcon from "@/assets/icons/bookmarks.tsx";
-import ProfileIcon from "@/assets/icons/profile.tsx";
-import NotificationIcon from "@/assets/icons/notification.tsx";
-import SettingsIcon from "@/assets/icons/settings.tsx";
+import HomeIcon from "@/assets/icons/home";
+import BooksIcon from "@/assets/icons/books";
+import ShelvesIcon from "@/assets/icons/shelves";
+import BookmarksIcon from "@/assets/icons/bookmarks";
+import ProfileIcon from "@/assets/icons/profile";
+import NotificationIcon from "@/assets/icons/notification";
+import SettingsIcon from "@/assets/icons/settings";
 
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -15,6 +15,7 @@ export const ROUTES = {
   },
   HOME: "/home",
   OVERVIEW: "/overview",
+
   BOOKS: {
     ROOT: "/books",
     VIEW_ALL: "/books/view-all",
@@ -22,19 +23,32 @@ export const ROUTES = {
     COMPLETED: "/books/completed",
     WISHLIST: "/books/wishlist",
     FAVORITES: "/books/favorites",
+
+    VIEW_ALL_ID: "/books/view-all/:id",
+    VIEW_RECENT_ID: "/books/recent/:id",
+    VIEW_COMPLETED_ID: "/books/completed/:id",
+    VIEW_WISHLIST_ID: "/books/wishlist/:id",
+    VIEW_FAVORITES_ID: "/books/favorites/:id",
   },
+
   SHELVES: {
     ROOT: "/shelves",
     FICTION: "/shelves/fiction",
     NON_FICTION: "/shelves/non-fiction",
     AUDIOBOOKS: "/shelves/audiobooks",
+
+    VIEW_FICTION_ID: "/shelves/fiction/:id",
+    VIEW_NON_FICTION_ID: "/shelves/non-fiction/:id",
+    VIEW_AUDIOBOOKS_ID: "/shelves/audiobooks/:id",
   },
+
   BOOKMARKS: {
     ROOT: "/bookmarks",
     ADDITION: "/bookmarks/addition",
     QUOTES: "/bookmarks/quotes",
     SCHEDULE: "/bookmarks/schedule",
   },
+
   PROFILE: "/profile",
   NOTIFICATION: "/notification",
   SETTINGS: "/settings",
@@ -69,7 +83,7 @@ export const NavLinks = [
     ],
   },
   {
-    label: "Bookmark",
+    label: "Bookmarks",
     link: ROUTES.BOOKMARKS.ROOT,
     icon: BookmarksIcon,
     subNav: [
