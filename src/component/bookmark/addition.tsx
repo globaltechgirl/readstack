@@ -325,7 +325,7 @@ const styles: Record<string, CSSProperties> = {
     backgroundColor: "var(--light-100)",
     minHeight: 150,
     overflowY: "auto",
-  },
+  }
 };
 
 const mainBook = {
