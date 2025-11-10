@@ -45,7 +45,6 @@ export const ROUTES = {
   BOOKMARKS: {
     ROOT: "/bookmarks",
     ADDITION: "/bookmarks/addition",
-    QUOTES: "/bookmarks/quotes",
     SCHEDULE: "/bookmarks/schedule",
   },
 
@@ -88,7 +87,6 @@ export const NavLinks = [
     icon: BookmarksIcon,
     subNav: [
       { label: "Addition", link: ROUTES.BOOKMARKS.ADDITION },
-      { label: "Quotes", link: ROUTES.BOOKMARKS.QUOTES },
       { label: "Schedule", link: ROUTES.BOOKMARKS.SCHEDULE },
     ],
   },

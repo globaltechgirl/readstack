@@ -22,7 +22,6 @@ import ShelfView from "@/component/shelves/view";
 
 import Bookmarks from "@/pages/bookmarks";
 import AdditionBookmarks from "@/component/bookmark/addition";
-import QuotesBookmarks from "@/component/bookmark/addition";
 import ScheduleBookmarks from "@/component/bookmark/addition";
 
 import Profile from "@/pages/profile";
@@ -76,7 +75,6 @@ const router = createBrowserRouter([
 
           { path: "bookmarks", element: <Bookmarks /> },
           { path: "bookmarks/addition", element: <AdditionBookmarks /> },
-          { path: "bookmarks/quotes", element: <QuotesBookmarks /> },
           { path: "bookmarks/schedule", element: <ScheduleBookmarks /> },
 
           { path: "profile", element: <Profile /> },
