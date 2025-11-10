@@ -24,7 +24,6 @@ import Bookmarks from "@/pages/bookmarks";
 import AdditionBookmarks from "@/component/bookmark/addition";
 import ScheduleBookmarks from "@/component/bookmark/addition";
 
-import Profile from "@/pages/profile";
 import Notification from "@/pages/notification";
 import Settings from "@/pages/settings";
 
@@ -77,7 +76,6 @@ const router = createBrowserRouter([
           { path: "bookmarks/addition", element: <AdditionBookmarks /> },
           { path: "bookmarks/schedule", element: <ScheduleBookmarks /> },
 
-          { path: "profile", element: <Profile /> },
           { path: "notification", element: <Notification /> },
           { path: "settings", element: <Settings /> },
 

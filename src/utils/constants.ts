@@ -2,7 +2,6 @@ import HomeIcon from "@/assets/icons/home";
 import BooksIcon from "@/assets/icons/books";
 import ShelvesIcon from "@/assets/icons/shelves";
 import BookmarksIcon from "@/assets/icons/bookmarks";
-import ProfileIcon from "@/assets/icons/profile";
 import NotificationIcon from "@/assets/icons/notification";
 import SettingsIcon from "@/assets/icons/settings";
 
@@ -48,7 +47,6 @@ export const ROUTES = {
     SCHEDULE: "/bookmarks/schedule",
   },
 
-  PROFILE: "/profile",
   NOTIFICATION: "/notification",
   SETTINGS: "/settings",
 };
@@ -89,11 +87,6 @@ export const NavLinks = [
       { label: "Addition", link: ROUTES.BOOKMARKS.ADDITION },
       { label: "Schedule", link: ROUTES.BOOKMARKS.SCHEDULE },
     ],
-  },
-  {
-    label: "Profile",
-    link: ROUTES.PROFILE,
-    icon: ProfileIcon,
   },
   {
     label: "Notification",
