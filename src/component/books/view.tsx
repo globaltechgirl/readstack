@@ -1,8 +1,12 @@
-import { type FC, type CSSProperties, useState } from "react";
+import { type FC, type CSSProperties, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Box, Text, Image, Stack } from "@mantine/core";
+
 import Info from "../layout/info";
 import Book3 from "@/assets/book3.jpg";
+
+import EditIcon from "@/assets/icons/edit";
+import SaveIcon from "@/assets/icons/save";
 import BookmarkFill from "@/assets/icons/bookmarkFill";
 import BookmarkFull from "@/assets/icons/bookmarkFull";
 import HeartFill from "@/assets/icons/heartFill";
@@ -68,18 +72,24 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 600,
     color: "var(--dark-100)",
     width: 250,
+    outline: "none",
+    userSelect: "text",
   },
   bookAuthor: {
     fontSize: 14,
     fontWeight: 550,
     color: "var(--dark-100)",
+    outline: "none",
+    userSelect: "text",
   },
   bookGenre: {
     fontSize: 11,
     fontWeight: 500,
     color: "var(--dark-200)",
     fontStyle: "italic",
-    marginBottom: 20
+    marginBottom: 20,
+    outline: "none",
+    userSelect: "text",
   },
   bottomSection: {
     width: "90%",
@@ -196,6 +206,8 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 550,
     color: "var(--dark-200)",
     lineHeight: 1.6,
+    outline: "none",
+    userSelect: "text",
   },
 };
 
@@ -204,7 +216,7 @@ const mainBook = {
   author: "Rebecca Yarrow",
   image: Book3,
   genre: "Fantasy",
-  publication: "Orbit",
+  publication: "May 2, 2023",
   language: "English",
   format: "517 pages, Hardcover",
   isbn: "9781649374042",
@@ -212,11 +224,16 @@ const mainBook = {
     "Enter the brutal and elite world of a war college for dragon riders... Twenty-year-old Violet Sorrengail was supposed to enter the Scribe Quadrant, living a quiet life among books and history. Now, the commanding general—also known as her tough-as-talons mother—has ordered Violet to join the hundreds of candidates striving to become the elite of Navarre: dragon riders. But when you’re smaller than everyone else and your body is brittle, death is only a heartbeat away...because dragons don’t bond to “fragile” humans. They incinerate them. With fewer dragons willing to bond than cadets, most would kill Violet to better their own chances of success. The rest would kill her just for being her mother’s daughter—like Xaden Riorson, the most powerful and ruthless wingleader in the Riders Quadrant. She’ll need every edge her wits can give her just to see the next sunrise. Yet, with every day that passes, the war outside grows more deadly, the kingdom's protective wards are failing, and the death toll continues to rise. Even worse, Violet begins to suspect leadership is hiding a terrible secret. Friends, enemies, lovers. Everyone at Basgiath War College has an agenda—because once you enter, there are only two ways out: graduate or die.",
 };
 
+type BookType = typeof mainBook;
+
 const BookActions: FC<{
   bookmarked: boolean;
   liked: boolean;
+  isEditing: boolean;
   onBookmark: () => void;
-  onLike: () => void; }> = ({ bookmarked, liked, onBookmark, onLike }) => (
+  onLike: () => void;
+  onEditToggle: () => void;
+}> = ({ bookmarked, liked, isEditing, onBookmark, onLike, onEditToggle }) => (
   <Box style={styles.actionWrapper}>
     <Box style={styles.actionRow}>
       <Box style={styles.continueBox}>
@@ -224,6 +241,16 @@ const BookActions: FC<{
       </Box>
 
       <Box style={styles.iconWrappers}>
+        <Box style={styles.iconWrapper}>
+          <Box style={styles.iconBox} onClick={onEditToggle}>
+            {isEditing ? (
+              <SaveIcon style={styles.iconInner} />
+            ) : (
+              <EditIcon style={styles.iconInner} />
+            )}
+          </Box>
+        </Box>
+
         <Box style={styles.iconWrapper}>
           <Box style={styles.iconBox} onClick={onBookmark}>
             {bookmarked ? (
@@ -254,12 +281,38 @@ const BookActions: FC<{
 
 const View: FC = () => {
   const location = useLocation();
-  const book = location.state;
+  const bookData = (location.state as BookType) || mainBook;
 
+  const [book, setBook] = useState<BookType>({ ...bookData });
   const [bookmarked, setBookmarked] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  if (!book) return <Text>No book data found!</Text>;
+  const tempText = useRef<BookType>({ ...bookData });
+
+  const fields = ["title", "author", "genre"] as const;
+  const details = [
+    { label: "Publication", key: "publication" },
+    { label: "Language", key: "language" },
+    { label: "Format", key: "format" },
+    { label: "ISBN", key: "isbn" },
+  ];
+
+  const refs: Record<string, React.RefObject<HTMLDivElement | null>> = Object.fromEntries(
+    [...fields, "summary", ...details.map(d => d.key)].map(key => [key, useRef<HTMLDivElement>(null)])
+  );
+
+  const handleChange = (key: keyof BookType, value: string) => {
+    tempText.current[key] = value;
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(prev => {
+      if (prev) setBook({ ...tempText.current });
+      else tempText.current = { ...book };
+      return !prev;
+    });
+  };
 
   return (
     <Stack gap="10" style={styles.viewBody}>
@@ -269,15 +322,20 @@ const View: FC = () => {
         <Box style={styles.viewWrapper}>
           <Box style={styles.viewSection}>
             <Box style={styles.topSection}>
-              <Image
-                src={book.image}
-                alt={book.title}
-                style={styles.bookImage}
-              />
+              <Image src={book.image} alt={book.title} style={styles.bookImage} />
               <Box style={styles.bookInfo}>
-                <Text style={styles.bookTitle}>{book.title}</Text>
-                <Text style={styles.bookAuthor}>{book.author}</Text>
-                <Text style={styles.bookGenre}>{book.genre}</Text>
+                {fields.map(field => (
+                  <Box
+                    key={field}
+                    ref={refs[field]}
+                    contentEditable={isEditing}
+                    suppressContentEditableWarning
+                    onInput={e => handleChange(field, e.currentTarget.textContent || "")}
+                    style={styles[`book${field.charAt(0).toUpperCase() + field.slice(1)}`]}
+                  >
+                    {book[field]}
+                  </Box>
+                ))}
               </Box>
             </Box>
 
@@ -286,26 +344,39 @@ const View: FC = () => {
                 <BookActions
                   bookmarked={bookmarked}
                   liked={liked}
+                  isEditing={isEditing}
                   onBookmark={() => setBookmarked(!bookmarked)}
                   onLike={() => setLiked(!liked)}
+                  onEditToggle={handleEditToggle}
                 />
 
                 <Box style={styles.bottomContent}>
                   <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
                     <Text style={styles.detailLabel}>Description</Text>
-                    <Text style={styles.detailValue}>{mainBook.summary}</Text>
+                    <Box
+                      ref={refs.summary}
+                      contentEditable={isEditing}
+                      suppressContentEditableWarning
+                      onInput={e => handleChange("summary", e.currentTarget.textContent || "")}
+                      style={styles.detailValue}
+                    >
+                      {mainBook.summary}
+                    </Box>
                   </Box>
 
                   <Box style={styles.detailsWrapper}>
-                    {[
-                      { label: "Publication", value: mainBook.publication },
-                      { label: "Language", value: mainBook.language },
-                      { label: "Format", value: mainBook.format },
-                      { label: "ISBN", value: mainBook.isbn },
-                    ].map((item, index) => (
-                      <Box key={index} style={styles.detailsBox}>
-                        <Text style={styles.detailLabel}>{item.label}</Text>
-                        <Text style={styles.detailValue}>{item.value}</Text>
+                    {details.map(detail => (
+                      <Box key={detail.key} style={styles.detailsBox}>
+                        <Text style={styles.detailLabel}>{detail.label}</Text>
+                        <Box
+                          ref={refs[detail.key]}
+                          contentEditable={isEditing}
+                          suppressContentEditableWarning
+                          onInput={e => handleChange(detail.key as keyof BookType, e.currentTarget.textContent || "")}
+                          style={styles.detailValue}
+                        >
+                          {mainBook[detail.key as keyof BookType]}
+                        </Box>
                       </Box>
                     ))}
                   </Box>
