@@ -43,7 +43,7 @@ const router = createBrowserRouter([
       {
         element: <PrivateLayout />,
         children: [
-          { path: "", element: <Navigate to={ROUTES.OVERVIEW} replace /> },
+          { path: "", element: <Navigate to={ROUTES.HOME} replace /> },
           { path: "overview", element: <Overview /> },
 
           { path: "books", element: <Books /> },
