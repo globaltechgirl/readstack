@@ -1,9 +1,8 @@
-import { useState, type FC, type CSSProperties } from "react";
-import { Stack, Button, Anchor } from "@mantine/core";
+import { useState, useEffect, type FC, type CSSProperties } from "react";
+import { Stack, Button, Anchor, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useNavigate } from "react-router-dom";
 import { IconEye, IconEyeOff, IconCheck } from "@tabler/icons-react";
-import GoogleLogo from "@/assets/google.png";
+import useLogin from "@/hooks/use-login";
 
 const styles: Record<string, CSSProperties> = {
   inputWrapper: { 
@@ -114,12 +113,7 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-interface PasswordInputProps {
-  value: string;
-  onChange: (val: string) => void;
-  error?: string;
-  hasError?: boolean;
-}
+interface PasswordInputProps { value: string; onChange: (val: string) => void; hasError?: boolean; }
 
 const PasswordInput: FC<PasswordInputProps> = ({ value, onChange, hasError }) => {
   const [show, setShow] = useState(false);
@@ -144,11 +138,7 @@ const PasswordInput: FC<PasswordInputProps> = ({ value, onChange, hasError }) =>
   );
 };
 
-interface CustomCheckboxProps {
-  checked: boolean;
-  onToggle: () => void;
-  label: string;
-}
+interface CustomCheckboxProps { checked: boolean; onToggle: () => void; label: string; }
 
 const CustomCheckbox: FC<CustomCheckboxProps> = ({ checked, onToggle, label }) => (
   <label style={styles.checkboxLabel} onClick={onToggle}>
@@ -160,27 +150,41 @@ const CustomCheckbox: FC<CustomCheckboxProps> = ({ checked, onToggle, label }) =
 );
 
 const LoginForm: FC = () => {
-  const navigate = useNavigate(); 
+  const { handleFormSubmit, loading, error } = useLogin();
   const [signInHover, setSignInHover] = useState(false);
-  const [googleHover, setGoogleHover] = useState(false);
   const [remember, setRemember] = useState(false);
 
   const form = useForm({
     initialValues: { email: "", password: "" },
     validate: {
-      email: (val) => (/^\S+@\S+$/.test(val) ? null : true),
-      password: (val) => (val.length >= 6 ? null : true),
+      email: (val) => (/^\S+@\S+$/.test(val) ? null : "Invalid email"),
+      password: (val) => (val.length >= 6 ? null : "Password must be at least 6 characters"),
     },
   });
 
-  const handleSubmit = (values: typeof form.values) => {
-    console.log(values);
-    navigate("/overview"); 
+  // Load saved email if previously remembered
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      form.setFieldValue("email", savedEmail);
+      setRemember(true);
+    }
+  }, []);
+
+  const onSubmit = (values: typeof form.values) => {
+    if (remember) {
+      localStorage.setItem("rememberedEmail", values.email);
+    } else {
+      localStorage.removeItem("rememberedEmail");
+    }
+    handleFormSubmit(values);
   };
-  
+
   return (
-    <form style={{ width: "100%" }} onSubmit={form.onSubmit(handleSubmit)}>
+    <form style={{ width: "100%" }} onSubmit={form.onSubmit(onSubmit)}>
       <Stack gap={20}>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
         <div style={styles.inputWrapper}>
           <label style={styles.label}>Email</label>
           <input
@@ -203,6 +207,7 @@ const LoginForm: FC = () => {
         <Button
           type="submit"
           fullWidth
+          loading={loading}
           style={{
             ...styles.button,
             backgroundColor: signInHover ? "var(--dark-300)" : "var(--dark-100)",
@@ -214,24 +219,6 @@ const LoginForm: FC = () => {
         >
           Sign In
         </Button>
-
-        <div style={styles.orWrapper}>
-          <hr style={styles.hr} />
-          <span>or</span>
-          <hr style={styles.hr} />
-        </div>
-
-        <div
-          style={{
-            ...styles.googleButton,
-            backgroundColor: googleHover ? "var(--dark-300)" : "transparent",
-          }}
-          onMouseEnter={() => setGoogleHover(true)}
-          onMouseLeave={() => setGoogleHover(false)}
-        >
-          <img src={GoogleLogo} alt="Google" width={12} height={12} />
-          <span>Sign in with Google</span>
-        </div>
       </Stack>
     </form>
   );

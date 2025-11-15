@@ -1,5 +1,5 @@
-import { type FC, type CSSProperties, useState } from "react";
-import { Box, Text, Image, Button, Flex, Stack } from "@mantine/core";
+import { type FC, type CSSProperties, useState, useEffect } from "react";
+import { Box, Text, Image, Button, Flex, Stack, Loader } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 
 import ArrowLeft from "@/assets/icons/arrowLeft";
@@ -7,19 +7,8 @@ import ArrowRight from "@/assets/icons/arrowRight";
 import BookmarkFill from "@/assets/icons/bookmarkFill";
 import BookmarkFull from "@/assets/icons/bookmarkFull";
 
-import Book1 from "@/assets/book1.jpg";
-import Book2 from "@/assets/book2.jpg";
-import Book3 from "@/assets/book3.jpg";
-import Book4 from "@/assets/book4.jpg";
-import Book5 from "@/assets/book5.jpg";
-import Book6 from "@/assets/book6.jpg";
-import Book7 from "@/assets/book7.jpg";
-import Book8 from "@/assets/book8.jpg";
-import Book9 from "@/assets/book9.jpg";
-import Book10 from "@/assets/book10.jpg";
-import Book11 from "@/assets/book11.jpg";
-import Book12 from "@/assets/book12.jpg";
 import Info from "../layout/info";
+import useShelves from "@/hooks/useShelves";
 
 const styles: Record<string, CSSProperties> = {
   fictionBody: {
@@ -197,55 +186,45 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-const allBooks = [
-  { title: "Not In Love", author: "Ali Hazelwood", image: Book1, genre: "Romance" },
-  { title: "Funny Story", author: "Emily Henry", image: Book2, genre: "Romance" },
-  { title: "Fourth Wing", author: "Rebecca Yarrow", image: Book3, genre: "Fantasy" },
-  { title: "Harry Potter", author: "J.K. Rowling", image: Book4, genre: "Adventure" },
-  { title: "The Silent Patient", author: "Alex Michaelides", image: Book5, genre: "Thriller" },
-  { title: "Verity", author: "Collen Hoover", image: Book6, genre: "Romance" },
-  { title: "Atomic Habits", author: "James Clear", image: Book7, genre: "Self Help" },
-  { title: "The Let Them Theory", author: "Mel Robbins", image: Book8, genre: "Motivation" },
-  { title: "Just For The Summer", author: "Abbey Jimenez", image: Book9, genre: "Romance" },
-  { title: "Hunger Games", author: "Suzanne Collins", image: Book10, genre: "Dystopian" },
-  { title: "The Housemaid", author: "Freida McFadden", image: Book11, genre: "Thriller" },
-  { title: "One Golden Summer", author: "Carley Fortune", image: Book12, genre: "Romance" },
-];
-
 const genres = [
-  "All",
-  "Romance",
-  "Fantasy",
-  "Sci-Fi",
-  "Mystery",
-  "Thriller",
-  "Horror",
-  "Adventure",
-  "Historical Fiction",
-  "Dystopian",
-  "Drama",
+  "All", "Romance", "Fantasy", "Sci-Fi", "Mystery", "Thriller", "Horror", "Adventure", "Historical Fiction", "Dystopian", "Drama"
 ];
 
 const Fiction: FC = () => {
   const navigate = useNavigate();
+  const { startSearchGoogleBooks, loading } = useShelves();
+
   const [page, setPage] = useState(1);
-  const [bookmarks, setBookmarks] = useState<number[]>([]);
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [hovered, setHovered] = useState<number | null>(null);
   const [selectedGenre, setSelectedGenre] = useState("All");
+  const [books, setBooks] = useState<{ fiction: any[]; nonFiction: any[] }>({ fiction: [], nonFiction: [] });
 
-  const filteredBooks =
-    selectedGenre === "All"
-      ? allBooks
-      : allBooks.filter((book) => book.genre.toLowerCase() === selectedGenre.toLowerCase());
+  useEffect(() => {
+    const fetchBooks = async () => {
+      const result = await startSearchGoogleBooks("bestsellers"); // Default query
+      if (result) setBooks(result);
+    };
+    fetchBooks();
+  }, [startSearchGoogleBooks]);
+
+  const toggleBookmark = (bookId: string) => 
+    setBookmarks((prev) =>
+      prev.includes(bookId) ? prev.filter((id) => id !== bookId) : [...prev, bookId]
+    );
+
+  // Merge fiction and non-fiction based on selectedGenre
+  let allBooks: any[] = [];
+  if (selectedGenre === "All") allBooks = [...books.fiction, ...books.nonFiction];
+  else allBooks = books.fiction
+    .concat(books.nonFiction)
+    .filter((book) =>
+      (book.categories || []).some((c: string) => c.toLowerCase() === selectedGenre.toLowerCase())
+    );
 
   const booksPerPage = 12;
-  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
-  const currentBooks = filteredBooks.slice((page - 1) * booksPerPage, page * booksPerPage);
-
-  const toggleBookmark = (idx: number) =>
-    setBookmarks((prev) =>
-      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
-    );
+  const totalPages = Math.ceil(allBooks.length / booksPerPage);
+  const currentBooks = allBooks.slice((page - 1) * booksPerPage, page * booksPerPage);
 
   const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
@@ -258,17 +237,13 @@ const Fiction: FC = () => {
         <Box style={styles.fictionWrapper}>
           <Flex style={styles.filterBar}>
             {genres.map((genre) => (
-              <Box style={styles.filterBox}>
+              <Box style={styles.filterBox} key={genre}>
                 <Box
-                  key={genre}
                   style={{
                     ...styles.filterButton,
                     ...(selectedGenre === genre ? styles.filterButtonActive : {}),
                   }}
-                  onClick={() => {
-                  setSelectedGenre(genre);
-                  setPage(1);
-                  }}
+                  onClick={() => { setSelectedGenre(genre); setPage(1); }}
                 >
                   {genre}
                 </Box>
@@ -276,45 +251,55 @@ const Fiction: FC = () => {
             ))}
           </Flex>
 
-          <Box style={styles.booksGrid}>
-            {currentBooks.map((book, idx) => (
-              <Box
-                key={idx}
-                style={styles.bookCard}
-                onMouseEnter={() => setHovered(idx)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                <Box style={styles.bookWrapper}>
-                  <Box style={styles.bookMain}>
-                    <Image src={book.image} alt={book.title} style={styles.bookImage} />
-                  </Box>
+          {loading ? (
+            <Flex justify="center" align="center" style={{ height: "300px" }}>
+              <Loader />
+            </Flex>
+          ) : (
+            <Box style={styles.booksGrid}>
+              {currentBooks.map((book, idx) => (
+                <Box
+                  key={book.googleBooksId || idx}
+                  style={styles.bookCard}
+                  onMouseEnter={() => setHovered(idx)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  <Box style={styles.bookWrapper}>
+                    <Box style={styles.bookMain}>
+                      <Image
+                        src={book.coverImageUrl || "/placeholder-book.jpg"}
+                        alt={book.title}
+                        style={styles.bookImage}
+                      />
+                    </Box>
 
-                  <Box style={styles.genreRibbon}>{book.genre}</Box>
+                    <Box style={styles.genreRibbon}>{book.categories?.[0] || "Unknown"}</Box>
 
-                  <Box
-                    style={{
-                      ...styles.overlay,
-                      ...(hovered === idx ? styles.overlayVisible : {}),
-                    }}
-                    onClick={() => navigate(`/shelves/fiction/${idx}`, { state: book })}
-                  >
-                    <Box onClick={(e) => {e.stopPropagation(); toggleBookmark(idx); }}>
-                      {bookmarks.includes(idx) ? (
-                        <BookmarkFull style={styles.overlayIcon} />
-                      ) : (
-                        <BookmarkFill style={styles.overlayIcon} />
-                      )}
+                    <Box
+                      style={{
+                        ...styles.overlay,
+                        ...(hovered === idx ? styles.overlayVisible : {}),
+                      }}
+                      onClick={() => navigate(`/shelves/fiction/${idx}`, { state: book })}
+                    >
+                      <Box onClick={(e) => { e.stopPropagation(); toggleBookmark(book.googleBooksId || idx.toString()); }}>
+                        {bookmarks.includes(book.googleBooksId || idx.toString()) ? (
+                          <BookmarkFull style={styles.overlayIcon} />
+                        ) : (
+                          <BookmarkFill style={styles.overlayIcon} />
+                        )}
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
 
-                <Box style={styles.bookTexts}>
-                  <Text style={styles.bookTitle}>{book.title}</Text>
-                  <Text style={styles.bookAuthor}>{book.author}</Text>
+                  <Box style={styles.bookTexts}>
+                    <Text style={styles.bookTitle}>{book.title}</Text>
+                    <Text style={styles.bookAuthor}>{book.author}</Text>
+                  </Box>
                 </Box>
-              </Box>
-            ))}
-          </Box>
+              ))}
+            </Box>
+          )}
 
           <Flex style={styles.paginationContainer}>
             <Flex gap={4} align="center">

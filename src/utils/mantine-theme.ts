@@ -1,5 +1,8 @@
-import { createTheme } from "@mantine/core";
-import type { MantineThemeOverride, CSSVariablesResolver } from "@mantine/core";
+import {
+    createTheme,
+    MantineThemeOverride,
+    CSSVariablesResolver,
+} from "@mantine/core";
 
 export const theme: MantineThemeOverride = createTheme({
     colors: {

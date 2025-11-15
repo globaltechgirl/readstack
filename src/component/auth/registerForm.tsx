@@ -1,9 +1,8 @@
 import { useState, type FC, type CSSProperties } from "react";
-import { Stack, Button } from "@mantine/core";
+import { Stack, Button, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useNavigate } from "react-router-dom";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
-import GoogleLogo from "@/assets/google.png";
+import useRegister from "@/hooks/use-register";
 
 const styles: Record<string, CSSProperties> = {
   inputWrapper: { 
@@ -83,7 +82,6 @@ const styles: Record<string, CSSProperties> = {
 interface PasswordInputProps {
   value: string;
   onChange: (val: string) => void;
-  error?: string;
   hasError?: boolean;
 }
 
@@ -111,34 +109,33 @@ const PasswordInput: FC<PasswordInputProps> = ({ value, onChange, hasError }) =>
 };
 
 const RegisterForm: FC = () => {
-  const navigate = useNavigate(); 
+  const { handleFormSubmit, loading, error } = useRegister();
   const [signInHover, setSignInHover] = useState(false);
-  const [googleHover, setGoogleHover] = useState(false);
 
   const form = useForm({
-    initialValues: { username: "", email: "", password: "" },
+    initialValues: { fullName: "", email: "", password: "", confirmPassword: "" },
     validate: {
-      username: (val) => (val.length > 0 ? null : true),
-      email: (val) => (/^\S+@\S+$/.test(val) ? null : true),
-      password: (val) => (val.length >= 6 ? null : true),
+      fullName: (val) => (val.length > 0 ? null : "Full Name is required"),
+      email: (val) => (/^\S+@\S+\.\S+$/.test(val) ? null : "Invalid email"),
+      password: (val) => (val.length >= 6 ? null : "Password must be at least 6 characters"),
+      confirmPassword: (val, values) => (val === values.password ? null : "Passwords do not match"),
     },
   });
 
-  const handleSubmit = (values: typeof form.values) => {
-    console.log(values);
-    navigate("/overview"); 
-  };
+  const onSubmit = (values: typeof form.values) => handleFormSubmit(values);
 
   return (
-    <form style={{ width: "100%" }} onSubmit={form.onSubmit(handleSubmit)}>
+    <form style={{ width: "100%" }} onSubmit={form.onSubmit(onSubmit)}>
       <Stack gap={20}>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
         <div style={styles.inputWrapper}>
-          <label style={styles.label}>Username</label>
+          <label style={styles.label}>Full Name</label>
           <input
             type="text"
-            placeholder="Enter your username"
-            style={{ ...styles.input, borderColor: form.errors.username ? "red" : "var(--border-100)" }}
-            {...form.getInputProps("username")}
+            placeholder="Enter your full name"
+            style={{ ...styles.input, borderColor: form.errors.fullName ? "red" : "var(--border-100)" }}
+            {...form.getInputProps("fullName")}
           />
         </div>
 
@@ -153,10 +150,21 @@ const RegisterForm: FC = () => {
         </div>
 
         <PasswordInput value={form.values.password} onChange={(val) => form.setFieldValue("password", val)} hasError={!!form.errors.password} />
-          
+
+        <div style={styles.inputWrapper}>
+          <label style={styles.label}>Confirm Password</label>
+          <input
+            type="password"
+            placeholder="Confirm your password"
+            style={{ ...styles.input, borderColor: form.errors.confirmPassword ? "red" : "var(--border-100)" }}
+            {...form.getInputProps("confirmPassword")}
+          />
+        </div>
+
         <Button
           type="submit"
           fullWidth
+          loading={loading}
           style={{
             ...styles.button,
             backgroundColor: signInHover ? "var(--dark-300)" : "var(--dark-100)",
@@ -168,24 +176,6 @@ const RegisterForm: FC = () => {
         >
           Sign Up
         </Button>
-
-        <div style={styles.orWrapper}>
-          <hr style={styles.hr} />
-          <span>or</span>
-          <hr style={styles.hr} />
-        </div>
-
-        <div
-          style={{
-            ...styles.googleButton,
-            backgroundColor: googleHover ? "var(--dark-300)" : "transparent",
-          }}
-          onMouseEnter={() => setGoogleHover(true)}
-          onMouseLeave={() => setGoogleHover(false)}
-        >
-          <img src={GoogleLogo} alt="Google" width={12} height={12} />
-          <span>Sign up with Google</span>
-        </div>
       </Stack>
     </form>
   );
