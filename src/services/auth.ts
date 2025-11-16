@@ -13,8 +13,8 @@ import { ApiAuthModes } from "@/types/enums";
 const useAuthService = () => {
   const apiNoAuth = useAxiosApi(ApiAuthModes.NoAuth);
 
-  const login = async (data: LoginValues): Promise<ApiResponse<LoginResponse>> => {
-    const res: AxiosResponse<ApiResponse<LoginResponse>> =
+  const login = async (data: LoginValues): Promise<LoginResponse> => {
+    const res: AxiosResponse<LoginResponse> = 
       await apiNoAuth.post(ENDPOINTS.AUTH.LOGIN, data);
     return res.data;
   };

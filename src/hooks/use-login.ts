@@ -17,25 +17,29 @@ const useLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFormSubmit = async (values: LoginValues) => {
+  const handleFormSubmit = async (values: LoginValues): Promise<boolean> => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await login(values);
-      handlePostLogin(res.data);
+      const res: LoginResponse = await login(values);
+
+      if (!res.token) {
+        setError("Invalid email or password");
+        return false;
+      }
+
+      dispatch(loginUser(res.token));
+      dispatch(setUserFromAuthResponse(res));
+
+      navigate(ROUTES.OVERVIEW);
+      return true;
     } catch (err: any) {
-      const message = getErrorMessage(err);
-      setError(message || "Login failed. Please try again.");
+      setError(getErrorMessage(err) || "Login failed. Please try again.");
+      return false;
     } finally {
       setLoading(false);
     }
-  };
-
-  const handlePostLogin = (data: LoginResponse) => {
-    dispatch(loginUser(data.token));
-    dispatch(setUserFromAuthResponse(data));
-    navigate(ROUTES.OVERVIEW);
   };
 
   return { handleFormSubmit, loading, error };

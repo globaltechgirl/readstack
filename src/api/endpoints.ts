@@ -2,11 +2,13 @@ export const ENDPOINTS = {
   AUTH: {
     REGISTER: "auth/register",
     LOGIN: "auth/login",
-    LOGOUT: "auth/logout",
   },
+
   SHELVES: {
-    GET_ALL: "books",
+    GET_ALL: "books", 
     GET_BY_ID: (id: number | string) => `books/${id}`,
-    SEARCH_GOOGLE: "books/google/search",
+    SEARCH_DB: "books/search",
+    SEARCH_EXTERNAL: "books/search/external",
+    IMPORT_BOOK: (googleBooksId: string) => `books/import/${googleBooksId}`,
   },
 };

@@ -2,6 +2,7 @@ import { type FC, useState, useEffect, useRef, type CSSProperties } from "react"
 import { NavLink } from "react-router-dom";
 import { Box, Avatar, Text } from "@mantine/core";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 import { NavLinks, ROUTES } from "@/utils/constants";
 import Logo from "@/assets/logo.svg";
@@ -186,10 +187,18 @@ interface MainbarProps {
   onSidebarClick?: () => void;
 }
 
+interface User {
+  fullName: string;
+  email: string;
+  avatarUrl?: string;
+}
+
 const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [popoverOpened, setPopoverOpened] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -204,6 +213,18 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
   const toggleDropdown = (label: string) => {
     setOpenDropdown((prev) => (prev === label ? null : label));
   };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get("/api/auth/me"); 
+        setUser(res.data);
+      } catch (err) {
+        console.error("Failed to fetch user", err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <Box style={styles.wrapper}>
@@ -303,8 +324,8 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
           <Box style={styles.userBox}>
             <Avatar radius="6" size={32} />
             <Box style={styles.userInfo}>
-              <Text style={styles.userName}>Onyinye Ofili</Text>
-              <Text style={styles.userEmail}>onyinyeofili209@gmail.com</Text>
+              <Text style={styles.userName}>{user?.fullName || "Guest User"}</Text>
+              <Text style={styles.userEmail}>{user?.email || "guest@example.com"}</Text>
             </Box>
           </Box>
           <UnfoldIcon width={9} height={9} color="var(--dark-200)" />

@@ -1,5 +1,5 @@
 export interface Shelves {
-  id: number | string;
+  id: number | string | null; 
   title: string;
   author: string;
   isbn?: string;
@@ -11,7 +11,7 @@ export interface Shelves {
   categories?: string[];
   language?: string;
   googleBooksId?: string;
-  openLibraryId?: string | null;
+  openLibraryId?: string | null; 
   averageRating?: number;
   ratingsCount?: number;
 }

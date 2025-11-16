@@ -2,11 +2,8 @@ import axios from "axios";
 
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    return (
-      (error.response?.data as { message?: string })?.message ||
-      error.message ||
-      "Request failed"
-    );
+    const data = error.response?.data as Record<string, any>;
+    return data?.message || data?.error || error.message || "Request failed";
   }
   return "Unexpected error occurred";
 }

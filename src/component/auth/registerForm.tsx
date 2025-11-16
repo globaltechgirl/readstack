@@ -62,20 +62,11 @@ const styles: Record<string, CSSProperties> = {
     marginTop: 5, 
     transition: "all 0.2s"  
   },
-  googleButton: { 
-    display: "flex", 
-    alignItems: "center", 
-    justifyContent: "center", 
-    gap: 8, 
-    border: "0.5px solid var(--border-100)", 
-    borderRadius: 10, 
-    height: 38, 
-    cursor: "pointer", 
-    fontSize: 9.5, 
-    fontWeight: 600, 
-    color: "var(--dark-100)", 
-    backgroundColor: "transparent", 
-    transition: "all 0.2s" 
+  errorText: { 
+    fontSize: 8.5,
+    fontWeight: 450,
+    color: "var(--dark-200)",
+    marginBottom: "-15px"
   },
 };
 
@@ -108,6 +99,35 @@ const PasswordInput: FC<PasswordInputProps> = ({ value, onChange, hasError }) =>
   );
 };
 
+interface ConfirmPasswordInputProps {
+  value: string;
+  onChange: (val: string) => void;
+  hasError?: boolean;
+}
+
+const ConfirmPasswordInput: FC<ConfirmPasswordInputProps> = ({ value, onChange, hasError }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div style={styles.inputWrapper}>
+      <label style={styles.label}>Confirm Password</label>
+      <div style={styles.passwordWrapper}>
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Confirm your password"
+          style={{ ...styles.input, borderColor: hasError ? "red" : "var(--dark-100)", paddingRight: 32 }}
+        />
+        {show ? (
+          <IconEyeOff size={14} stroke={1.5} style={styles.toggleIcon} onClick={() => setShow(false)} color="var(--dark-200)" />
+        ) : (
+          <IconEye size={14} stroke={1.5} style={styles.toggleIcon} onClick={() => setShow(true)} color="var(--dark-200)" />
+        )}
+      </div>
+    </div>
+  );
+};
+
 const RegisterForm: FC = () => {
   const { handleFormSubmit, loading, error } = useRegister();
   const [signInHover, setSignInHover] = useState(false);
@@ -122,7 +142,9 @@ const RegisterForm: FC = () => {
     },
   });
 
-  const onSubmit = (values: typeof form.values) => handleFormSubmit(values);
+  const onSubmit = async (values: typeof form.values) => {
+    await handleFormSubmit(values);
+  };
 
   return (
     <form style={{ width: "100%" }} onSubmit={form.onSubmit(onSubmit)}>
@@ -149,17 +171,17 @@ const RegisterForm: FC = () => {
           />
         </div>
 
-        <PasswordInput value={form.values.password} onChange={(val) => form.setFieldValue("password", val)} hasError={!!form.errors.password} />
+        <PasswordInput
+          value={form.values.password}
+          onChange={(val) => form.setFieldValue("password", val)}
+          hasError={!!form.errors.password}
+        />
 
-        <div style={styles.inputWrapper}>
-          <label style={styles.label}>Confirm Password</label>
-          <input
-            type="password"
-            placeholder="Confirm your password"
-            style={{ ...styles.input, borderColor: form.errors.confirmPassword ? "red" : "var(--border-100)" }}
-            {...form.getInputProps("confirmPassword")}
-          />
-        </div>
+        <ConfirmPasswordInput
+          value={form.values.confirmPassword}
+          onChange={(val) => form.setFieldValue("confirmPassword", val)}
+          hasError={!!form.errors.confirmPassword}
+        />
 
         <Button
           type="submit"

@@ -5,9 +5,16 @@ import { useNavigate } from "react-router-dom";
 import useAuthService from "@/services/auth";
 import { getErrorMessage } from "@/api/error";
 import { loginUser } from "@/store/reducers/auth.reducer";
-import { setUserFromAuthResponse } from "@/store/reducers/user.reducer";
-import { RegisterValues, RegisterResponse } from "@/types/auth";
+import { RegisterValues } from "@/types/auth";
 import { ROUTES } from "@/utils/constants";
+
+interface ApiResponse<T> {
+  data: T;
+}
+
+interface RegisterResponse {
+  token: string;
+}
 
 const useRegister = () => {
   const navigate = useNavigate();
@@ -17,25 +24,29 @@ const useRegister = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleFormSubmit = async (values: RegisterValues) => {
+  const handleFormSubmit = async (values: RegisterValues): Promise<boolean> => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await register(values); 
-      handlePostRegister(res.data);
-    } catch (err) {
-      const message = getErrorMessage(err);
-      setError(message || "Registration failed. Please try again.");
+      const res: ApiResponse<RegisterResponse> = await register(values);
+
+      if (!res.data?.token) {
+        setError("Registration failed. Please try again.");
+        return false;
+      }
+
+      dispatch(loginUser(res.data.token));
+
+      navigate(ROUTES.AUTH.LOGIN);
+
+      return true;
+    } catch (err: any) {
+      setError(getErrorMessage(err) || "Registration failed. Please try again.");
+      return false;
     } finally {
       setLoading(false);
     }
-  };
-
-  const handlePostRegister = (data: RegisterResponse) => {
-    dispatch(loginUser(data.token));
-    dispatch(setUserFromAuthResponse(data));
-    navigate(ROUTES.OVERVIEW);
   };
 
   return { handleFormSubmit, loading, error };

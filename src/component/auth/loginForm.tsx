@@ -2,6 +2,7 @@ import { useState, useEffect, type FC, type CSSProperties } from "react";
 import { Stack, Button, Anchor, Text } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconEye, IconEyeOff, IconCheck } from "@tabler/icons-react";
+
 import useLogin from "@/hooks/use-login";
 
 const styles: Record<string, CSSProperties> = {
@@ -96,20 +97,10 @@ const styles: Record<string, CSSProperties> = {
     marginTop: 5, 
     transition: "all 0.2s"  
   },
-  googleButton: { 
-    display: "flex", 
-    alignItems: "center", 
-    justifyContent: "center", 
-    gap: 8, 
-    border: "0.5px solid var(--border-100)", 
-    borderRadius: 10, 
-    height: 38, 
-    cursor: "pointer", 
-    fontSize: 9.5, 
-    fontWeight: 600, 
-    color: "var(--dark-100)", 
-    backgroundColor: "transparent", 
-    transition: "all 0.2s" 
+  errorText: { 
+    fontSize: 9.5,
+    fontWeight: 450,
+    color: "var(--dark-200)" 
   },
 };
 
@@ -162,7 +153,6 @@ const LoginForm: FC = () => {
     },
   });
 
-  // Load saved email if previously remembered
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     if (savedEmail) {
@@ -171,13 +161,14 @@ const LoginForm: FC = () => {
     }
   }, []);
 
-  const onSubmit = (values: typeof form.values) => {
+  const onSubmit = async (values: typeof form.values) => {
     if (remember) {
       localStorage.setItem("rememberedEmail", values.email);
     } else {
       localStorage.removeItem("rememberedEmail");
     }
-    handleFormSubmit(values);
+
+    await handleFormSubmit(values);
   };
 
   return (
