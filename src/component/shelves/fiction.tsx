@@ -188,7 +188,7 @@ const styles: Record<string, CSSProperties> = {
 
 const Fiction: FC = () => {
   const navigate = useNavigate();
-  const { startGetAllBooks } = useShelves();
+  const { startGetAllBooks, startGetBook } = useShelves();
 
   const [page, setPage] = useState(1);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
@@ -199,51 +199,29 @@ const Fiction: FC = () => {
   const [fetchDone, setFetchDone] = useState(false);
 
   const predefinedGenres = [
-    "All",
-    "Romance",
-    "Fantasy",
-    "Sci-Fi",
-    "Mystery",
-    "Thriller",
-    "Horror",
-    "Adventure",
-    "Historical Fiction",
-    "Dystopian",
-    "Drama"
+    "All","Romance","Fantasy","Sci-Fi","Mystery","Thriller",
+    "Horror","Adventure","Historical Fiction","Dystopian","Drama"
   ];
 
   useEffect(() => {
     const fetchBooks = async () => {
       try {
         const data = await startGetAllBooks(0, 100);
-        console.log("Fetched books:", data);
-
-        if (!data?.content || data.content.length === 0) {
+        if (!data?.content?.length) {
           setBooks([]);
-          setGenres(predefinedGenres);
-          return;
+        } else {
+          setBooks(data.content);
         }
-
-        setBooks(data.content);
-        setGenres(predefinedGenres);
-      } catch (err) {
-        console.error("Error fetching books:", err);
-        setBooks([]);
         setGenres(predefinedGenres);
       } finally {
         setFetchDone(true);
       }
     };
-
     fetchBooks();
   }, [startGetAllBooks]);
 
   const toggleBookmark = (bookId: string) =>
-    setBookmarks((prev) =>
-      prev.includes(bookId)
-        ? prev.filter((id) => id !== bookId)
-        : [...prev, bookId]
-    );
+    setBookmarks(prev => prev.includes(bookId) ? prev.filter(id => id !== bookId) : [...prev, bookId]);
 
   const filteredBooks =
     selectedGenre === "All"
@@ -251,22 +229,24 @@ const Fiction: FC = () => {
       : books.filter((book) =>
           (book.categories || []).some(
             (c: string) =>
-              predefinedGenres
-                .map((g) => g.toLowerCase())
-                .includes(c.toLowerCase()) &&
+              predefinedGenres.map((g) => g.toLowerCase()).includes(c.toLowerCase()) &&
               c.toLowerCase() === selectedGenre.toLowerCase()
           )
         );
 
   const booksPerPage = 12;
   const totalPages = Math.max(Math.ceil(filteredBooks.length / booksPerPage), 1);
-  const currentBooks = filteredBooks.slice(
-    (page - 1) * booksPerPage,
-    page * booksPerPage
-  );
+  const currentBooks = filteredBooks.slice((page - 1) * booksPerPage, page * booksPerPage);
 
-  const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
-  const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
+  const handlePrev = () => setPage(prev => Math.max(prev - 1, 1));
+  const handleNext = () => setPage(prev => Math.min(prev + 1, totalPages));
+
+  const handleBookClick = async (bookId: string) => {
+    const book = await startGetBook(bookId);
+    if (book) {
+      navigate(`/shelves/fiction/${bookId}`, { state: book });
+    }
+  };
 
   return (
     <Stack gap="10" style={styles.fictionBody}>
@@ -326,9 +306,7 @@ const Fiction: FC = () => {
                           ...styles.overlay,
                           ...(hovered === idx ? styles.overlayVisible : {}),
                         }}
-                        onClick={() =>
-                          navigate(`/shelves/fiction/${idx}`, { state: book })
-                        }
+                        onClick={() => handleBookClick(bookId)}
                       >
                         <Box
                           onClick={(e) => {

@@ -9,11 +9,18 @@ const useUser = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchUser = async () => {
+    const token = localStorage.getItem("token"); 
+    if (!token) return; 
+    
     setLoading(true);
     try {
       const data = await getCurrentUser();
       setUser(data);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        setUser(null);
+        return;
+      }
       notifications.show({
         title: "Error fetching user",
         message: getErrorMessage(error),

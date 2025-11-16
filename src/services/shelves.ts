@@ -14,26 +14,29 @@ const shelvesService = () => {
     const res: AxiosResponse<any> = await authApi.get(
       `${ENDPOINTS.SHELVES.GET_ALL}?page=${page}&size=${size}`
     );
-
-    return res.data; 
+    return res.data;
   };
 
   const getBookById = async (id: number | string): Promise<Shelves> => {
-    const res: AxiosResponse<Shelves> = await authApi.get(
-      ENDPOINTS.SHELVES.GET_BY_ID(id)
-    );
-    return res.data;
+    try {
+      const res: AxiosResponse<Shelves> = await authApi.get(
+        ENDPOINTS.SHELVES.GET_BY_ID(id)
+      );
+      return res.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) throw new Error("Book not found");
+      if (error.response?.status === 403) throw new Error("Unauthorized access");
+      throw error;
+    }
   };
 
   const searchDatabaseBooks = async (
     query: string,
     page = 0,
     size = 20
-  ): Promise<any> => {
+  ): Promise<{ content: Shelves[]; totalPages: number; totalElements: number }> => {
     const res = await authApi.get(
-      `${ENDPOINTS.SHELVES.SEARCH_DB}?query=${encodeURIComponent(
-        query
-      )}&page=${page}&size=${size}`
+      `${ENDPOINTS.SHELVES.SEARCH_DB}?query=${encodeURIComponent(query)}&page=${page}&size=${size}`
     );
     return res.data;
   };

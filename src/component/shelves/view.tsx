@@ -1,12 +1,12 @@
-import { type FC, type CSSProperties, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Box, Text, Image, Stack } from "@mantine/core";
+import { type FC, type CSSProperties, useState, useEffect, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { Box, Text, Image, Stack, Loader, Flex } from "@mantine/core";
 import Info from "../layout/info";
-import Book3 from "@/assets/book3.jpg";
 import BookmarkFill from "@/assets/icons/bookmarkFill";
 import BookmarkFull from "@/assets/icons/bookmarkFull";
 import HeartFill from "@/assets/icons/heartFill";
 import HeartFull from "@/assets/icons/heartFull";
+import useShelves from "@/hooks/use-shelves";
 
 const styles: Record<string, CSSProperties> = {
   viewBody: {
@@ -199,19 +199,6 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-const mainBook = {
-  title: "Fourth Wing",
-  author: "Rebecca Yarrow",
-  image: Book3,
-  genre: "Fantasy",
-  publication: "Orbit",
-  language: "English",
-  format: "517 pages, Hardcover",
-  isbn: "9781649374042",
-  summary:
-    "Enter the brutal and elite world of a war college for dragon riders... Twenty-year-old Violet Sorrengail was supposed to enter the Scribe Quadrant, living a quiet life among books and history. Now, the commanding general—also known as her tough-as-talons mother—has ordered Violet to join the hundreds of candidates striving to become the elite of Navarre: dragon riders. But when you’re smaller than everyone else and your body is brittle, death is only a heartbeat away...because dragons don’t bond to “fragile” humans. They incinerate them. With fewer dragons willing to bond than cadets, most would kill Violet to better their own chances of success. The rest would kill her just for being her mother’s daughter—like Xaden Riorson, the most powerful and ruthless wingleader in the Riders Quadrant. She’ll need every edge her wits can give her just to see the next sunrise. Yet, with every day that passes, the war outside grows more deadly, the kingdom's protective wards are failing, and the death toll continues to rise. Even worse, Violet begins to suspect leadership is hiding a terrible secret. Friends, enemies, lovers. Everyone at Basgiath War College has an agenda—because once you enter, there are only two ways out: graduate or die.",
-};
-
 const BookActions: FC<{
   bookmarked: boolean;
   liked: boolean;
@@ -253,63 +240,76 @@ const BookActions: FC<{
 );
 
 const View: FC = () => {
-  const location = useLocation();
-  const book = location.state;
-
+  const { id } = useParams<{ id: string }>();
+  const { startGetBook, loading } = useShelves();
+  const [book, setBook] = useState<any | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [liked, setLiked] = useState(false);
 
-  if (!book) return <Text>No book data found!</Text>;
+  const fetchBook = useCallback(async () => {
+    if (!id) return;
+    try {
+      const data = await startGetBook(id);
+      setBook(data ?? null);
+    } catch (err) {
+      console.error("Failed to fetch book:", err);
+      setBook(null);
+    }
+  }, [id, startGetBook]);
+
+  useEffect(() => {
+    fetchBook();
+  }, [fetchBook]);
+
+  if (loading || !book)
+    return <Loader style={{ margin: "50px auto", display: "block" }} />;
 
   return (
     <Stack gap="10" style={styles.viewBody}>
       <Info />
-
       <Box style={styles.viewMain}>
         <Box style={styles.viewWrapper}>
           <Box style={styles.viewSection}>
-            <Box style={styles.topSection}>
+            <Flex style={styles.topSection}>
               <Image
-                src={book.image}
+                src={book.coverImageUrl ?? "/placeholder-book.jpg"}
                 alt={book.title}
                 style={styles.bookImage}
               />
               <Box style={styles.bookInfo}>
                 <Text style={styles.bookTitle}>{book.title}</Text>
-                <Text style={styles.bookAuthor}>{book.author}</Text>
-                <Text style={styles.bookGenre}>{book.genre}</Text>
+                <Text style={styles.bookAuthor}>{book.author ?? "Unknown Author"}</Text>
+                <Text style={styles.bookGenre}>{book.categories?.[0] ?? "Unknown"}</Text>
               </Box>
-            </Box>
+            </Flex>
 
             <Box style={styles.bottomSection}>
               <Box style={styles.bottomWrapper}>
                 <BookActions
                   bookmarked={bookmarked}
                   liked={liked}
-                  onBookmark={() => setBookmarked(!bookmarked)}
-                  onLike={() => setLiked(!liked)}
+                  onBookmark={() => setBookmarked(prev => !prev)}
+                  onLike={() => setLiked(prev => !prev)}
                 />
-
-                <Box style={styles.bottomContent}>
+                <Flex style={styles.bottomContent}>
                   <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
                     <Text style={styles.detailLabel}>Description</Text>
-                    <Text style={styles.detailValue}>{mainBook.summary}</Text>
+                    <Text style={styles.detailValue}>{book.summary ?? "No description available."}</Text>
                   </Box>
-
                   <Box style={styles.detailsWrapper}>
                     {[
-                      { label: "Publication", value: mainBook.publication },
-                      { label: "Language", value: mainBook.language },
-                      { label: "Format", value: mainBook.format },
-                      { label: "ISBN", value: mainBook.isbn },
-                    ].map((item, index) => (
-                      <Box key={index} style={styles.detailsBox}>
+                      { label: "Publication", value: book.publisher ?? "Unknown" },
+                      { label: "Language", value: book.language ?? "Unknown" },
+                      { label: "Format", value: `${book.pageCount ?? "?"} pages` },
+                      { label: "ISBN", value: book.isbn ?? "Unknown" },
+                    ].map((item, idx) => (
+                      <Box key={idx} style={styles.detailsBox}>
                         <Text style={styles.detailLabel}>{item.label}</Text>
                         <Text style={styles.detailValue}>{item.value}</Text>
                       </Box>
                     ))}
                   </Box>
-                </Box>
+                </Flex>
               </Box>
             </Box>
           </Box>

@@ -5,12 +5,7 @@ import shelvesService from "@/services/shelves";
 import { Shelves } from "@/types/shelves";
 
 const useShelves = () => {
-  const {
-    getAllBooks,
-    getBookById,
-    searchExternalBooks,
-  } = shelvesService();
-
+  const { getAllBooks, getBookById, searchExternalBooks } = shelvesService();
   const [loading, setLoading] = useState(false);
 
   const startGetAllBooks = async (page = 0, size = 20) => {
@@ -23,21 +18,23 @@ const useShelves = () => {
         message: getErrorMessage(error),
         color: "red",
       });
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const startGetBook = async (id: number | string) => {
+  const startGetBook = async (id: number | string): Promise<Shelves | null> => {
     setLoading(true);
     try {
       return await getBookById(id);
-    } catch (error) {
+    } catch (error: any) {
       notifications.show({
         title: "Error",
-        message: getErrorMessage(error),
+        message: error.message || getErrorMessage(error),
         color: "red",
       });
+      return null;
     } finally {
       setLoading(false);
     }
@@ -47,7 +44,6 @@ const useShelves = () => {
     setLoading(true);
     try {
       const books = await searchExternalBooks(query);
-
       const fiction: Shelves[] = [];
       const nonFiction: Shelves[] = [];
 
@@ -64,6 +60,7 @@ const useShelves = () => {
         message: getErrorMessage(error),
         color: "red",
       });
+      return { fiction: [], nonFiction: [] };
     } finally {
       setLoading(false);
     }
