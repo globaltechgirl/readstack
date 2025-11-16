@@ -1,14 +1,14 @@
-import { type FC, useState, useEffect, useRef, type CSSProperties } from "react";
+import { type FC, useState, useRef, type CSSProperties } from "react";
 import { NavLink } from "react-router-dom";
 import { Box, Avatar, Text } from "@mantine/core";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
 
 import { NavLinks, ROUTES } from "@/utils/constants";
 import Logo from "@/assets/logo.svg";
 import SidebarIcon from "@/assets/icons/sidebar";
 import UnfoldIcon from "@/assets/icons/unfold";
 import ArrowDownIcon from "@/assets/icons/arrowDown";
+import useUser from "@/hooks/use-user";
 
 const styles: Record<string, CSSProperties> = {
   wrapper: {
@@ -187,45 +187,14 @@ interface MainbarProps {
   onSidebarClick?: () => void;
 }
 
-interface User {
-  fullName: string;
-  email: string;
-  avatarUrl?: string;
-}
-
 const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [popoverOpened, setPopoverOpened] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useUser();
 
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setOpenDropdown(null);
-      }
-    };
-    window.addEventListener("click", handleOutsideClick);
-    return () => window.removeEventListener("click", handleOutsideClick);
-  }, []);
-
-  const toggleDropdown = (label: string) => {
-    setOpenDropdown((prev) => (prev === label ? null : label));
-  };
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get("/api/auth/me"); 
-        setUser(res.data);
-      } catch (err) {
-        console.error("Failed to fetch user", err);
-      }
-    };
-    fetchUser();
-  }, []);
-
+  const toggleDropdown = (label: string) => setOpenDropdown(prev => (prev === label ? null : label));
   return (
     <Box style={styles.wrapper}>
       <Box style={styles.topSection}>
@@ -324,7 +293,7 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
           <Box style={styles.userBox}>
             <Avatar radius="6" size={32} />
             <Box style={styles.userInfo}>
-              <Text style={styles.userName}>{user?.fullName || "Guest User"}</Text>
+              <Text style={styles.userName}>{user ? `${user.firstName} ${user.lastName}` : "Guest User"}</Text>
               <Text style={styles.userEmail}>{user?.email || "guest@example.com"}</Text>
             </Box>
           </Box>
