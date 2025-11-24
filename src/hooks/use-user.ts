@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 import { getErrorMessage } from "@/api/error";
 import userService, { User } from "@/services/user";
@@ -24,10 +24,14 @@ const useUser = () => {
     }
   };
 
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   return {
     user,
     loading,
-    fetchUser, 
+    fetchUser,
     setUser,
   };
 };
