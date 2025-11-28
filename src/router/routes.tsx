@@ -11,14 +11,12 @@ import AllBooks from "@/component/books/all";
 import RecentBooks from "@/component/books/recent";
 import CompletedBooks from "@/component/books/completed";
 import WishlistBooks from "@/component/books/wishlist";
-import FavoritesBooks from "@/component/books/favorites";
 import BookView from "@/component/books/view";
 
 import Shelves from "@/pages/shelves";
 import FictionShelves from "@/component/shelves/fiction";
 import NonFictionShelves from "@/component/shelves/nonFiction";
 import AudiobooksShelves from "@/component/shelves/audiobooks";
-import ShelfView from "@/component/shelves/view";
 
 import Bookmarks from "@/pages/bookmarks";
 import AdditionBookmarks from "@/component/bookmark/addition";
@@ -47,30 +45,16 @@ const router = createBrowserRouter([
           { path: "overview", element: <Overview /> },
 
           { path: "books", element: <Books /> },
-          { path: "books/view-all", element: <AllBooks /> },
-          { path: "books/view-all/:id", element: <BookView /> },
-
+          { path: "books/all", element: <AllBooks /> },
           { path: "books/recent", element: <RecentBooks /> },
-          { path: "books/recent/:id", element: <BookView /> },
-
           { path: "books/completed", element: <CompletedBooks /> },
-          { path: "books/completed/:id", element: <BookView /> },
-
           { path: "books/wishlist", element: <WishlistBooks /> },
-          { path: "books/wishlist/:id", element: <BookView /> },
-
-          { path: "books/favorites", element: <FavoritesBooks /> },
-          { path: "books/favorites/:id", element: <BookView /> },
+          { path: "books/:id", element: <BookView /> },
 
           { path: "shelves", element: <Shelves /> },
           { path: "shelves/fiction", element: <FictionShelves /> },
-          { path: "shelves/fiction/:id", element: <ShelfView /> },
-
           { path: "shelves/non-fiction", element: <NonFictionShelves /> },
-          { path: "shelves/non-fiction/:id", element: <ShelfView /> },
-
           { path: "shelves/audiobooks", element: <AudiobooksShelves /> },
-          { path: "shelves/audiobooks/:id", element: <ShelfView /> },
 
           { path: "bookmarks", element: <Bookmarks /> },
           { path: "bookmarks/addition", element: <AdditionBookmarks /> },

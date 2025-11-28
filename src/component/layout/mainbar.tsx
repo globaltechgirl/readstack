@@ -195,6 +195,7 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
   const { user } = useUser();
 
   const toggleDropdown = (label: string) => setOpenDropdown(prev => (prev === label ? null : label));
+
   return (
     <Box style={styles.wrapper}>
       <Box style={styles.topSection}>
@@ -214,10 +215,7 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
               <Box
                 key={link}
                 ref={isDropdownOpen ? dropdownRef : null}
-                style={{
-                  ...styles.navLinkBox,
-                  marginBottom: isGapAfter ? 12 : 0,
-                }}
+                style={{ ...styles.navLinkBox, marginBottom: isGapAfter ? 12 : 0 }}
               >
                 <NavLink
                   to={link}
@@ -241,10 +239,7 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
                       <ArrowDownIcon
                         width={9}
                         height={9}
-                        style={{
-                          ...styles.arrowIcon,
-                          transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-                        }}
+                        style={{ ...styles.arrowIcon, transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }}
                       />
                     </Box>
                   )}
@@ -291,9 +286,9 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
           }}
         >
           <Box style={styles.userBox}>
-            <Avatar radius="6" size={32} />
+            <Avatar radius="6" size={32} src="" />
             <Box style={styles.userInfo}>
-              <Text style={styles.userName}>{user ? `${user.firstName} ${user.lastName}` : "Guest User"}</Text>
+              <Text style={styles.userName}>{user?.name || "Guest User"}</Text>
               <Text style={styles.userEmail}>{user?.email || "guest@example.com"}</Text>
             </Box>
           </Box>

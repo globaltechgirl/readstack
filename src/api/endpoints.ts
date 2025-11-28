@@ -4,11 +4,17 @@ export const ENDPOINTS = {
     LOGIN: "auth/login",
     ME: "auth/me",
   },
+  BOOKS: {
+    SEARCH: "books/search",
+    DETAILS: (id: string) => `books/${id}`,
+    FEATURED: "books/featured", 
+    UPLOAD: "books/upload", 
+  },
+  USER_BOOKS: {
+    ADD: "user-books/add",
+    MOVE_SHELF: (isbn: string) => `user-books/move-shelf/${isbn}`,
+  },
   SHELVES: {
-    GET_ALL: "books/OL257943W",
-    GET_BY_ID: (id: number | string) => `books/${id}`,
-    SEARCH_DB: "books/search",
-    SEARCH_EXTERNAL: "books/search/external",
-    IMPORT_BOOK: (googleBooksId: string) => `books/import/${googleBooksId}`,
+    GET_ALL: "shelves",
   },
 };

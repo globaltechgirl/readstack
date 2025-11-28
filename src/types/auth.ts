@@ -16,7 +16,7 @@ export interface LoginResponse {
   userId: number;
   username: string;
   email: string;
-  firstName: string;
+  fullName: string;
 }
 
 export interface RegisterValues {
@@ -32,7 +32,7 @@ export interface RegisterResponse {
   userId: number;
   username: string;
   email: string;
-  firstName: string;
+  fullName: string;
 }
 
 export interface LoginFormProps {

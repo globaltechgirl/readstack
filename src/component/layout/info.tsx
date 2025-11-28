@@ -79,12 +79,17 @@ const styles: Record<string, CSSProperties> = {
     cursor: "pointer",
   },
   iconInner: {
-    width: 11, 
-    height: 11 
+    width: 11,
+    height: 11,
   },
 };
 
-const Info: FC = () => {
+interface InfoProps {
+  query: string;
+  setQuery: (value: string) => void;
+}
+
+const Info: FC<InfoProps> = ({ query, setQuery }) => {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("theme") === "dark";
@@ -108,45 +113,40 @@ const Info: FC = () => {
         <Text style={styles.logoText}>Readstack</Text>
 
         <Box style={styles.rightIconsWrapper}>
+          {/* Search Input */}
           <Box style={styles.searchWrapper}>
             <SearchIcon style={styles.searchIcon} />
-            <input type="text" placeholder="Search" style={styles.input} />
+            <input
+              type="text"
+              placeholder="Search"
+              style={styles.input}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
           </Box>
 
+          {/* Dark Mode Toggle */}
           <Box style={styles.iconWrapper}>
-            <motion.div
-              style={styles.iconBox}
-              onClick={() => setDarkMode(!darkMode)}
-              layout
-            >
+            <motion.div style={styles.iconBox} onClick={() => setDarkMode(!darkMode)} layout>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={darkMode ? "moon" : "sun"}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   {darkMode ? (
-                    <MoonIcon
-                      width={styles.iconInner.width}
-                      height={styles.iconInner.height}
-                    />
+                    <MoonIcon width={styles.iconInner.width} height={styles.iconInner.height} />
                   ) : (
-                    <SunIcon
-                      width={styles.iconInner.width}
-                      height={styles.iconInner.height}
-                    />
+                    <SunIcon width={styles.iconInner.width} height={styles.iconInner.height} />
                   )}
                 </motion.div>
               </AnimatePresence>
             </motion.div>
           </Box>
 
+          {/* Notification Icon */}
           <Box style={styles.iconWrapper}>
             <Box style={styles.iconBox}>
               <NotificationIcon style={styles.iconInner} />

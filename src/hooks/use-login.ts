@@ -3,16 +3,18 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import useAuthService from "@/services/auth";
+import userService from "@/services/user";
 import { getErrorMessage } from "@/api/error";
 import { loginUser } from "@/store/reducers/auth.reducer";
-import { setUserFromAuthResponse } from "@/store/reducers/user.reducer";
-import { LoginValues, LoginResponse } from "@/types/auth";
+import { setUserFromApi } from "@/store/reducers/user.reducer";
+import { LoginValues } from "@/types/auth";
 import { ROUTES } from "@/utils/constants";
 
 const useLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { login } = useAuthService();
+  const { getUserDetails } = userService();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +24,7 @@ const useLogin = () => {
     setError(null);
 
     try {
-      const res: LoginResponse = await login(values);
+      const res = await login(values);
 
       if (!res.token) {
         setError("Invalid email or password");
@@ -30,7 +32,10 @@ const useLogin = () => {
       }
 
       dispatch(loginUser(res.token));
-      dispatch(setUserFromAuthResponse(res));
+      localStorage.setItem("authToken", res.token);
+
+      const me = await getUserDetails();
+      dispatch(setUserFromApi(me));
 
       navigate(ROUTES.OVERVIEW);
       return true;

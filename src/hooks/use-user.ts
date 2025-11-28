@@ -1,38 +1,22 @@
-import { useState, useEffect } from "react";
-import { notifications } from "@mantine/notifications";
-import { getErrorMessage } from "@/api/error";
-import userService, { User } from "@/services/user";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { User } from "@/store/reducers/user.reducer";
 
 const useUser = () => {
-  const { getCurrentUser } = userService();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const reduxUser = useSelector((state: RootState) => state.user);
 
-  const fetchUser = async () => {
-    setLoading(true);
-    try {
-      const data = await getCurrentUser();
-      setUser(data);
-    } catch (error) {
-      notifications.show({
-        title: "Error fetching user",
-        message: getErrorMessage(error),
-        color: "red",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const user: User = {
+    userId: reduxUser.userId,
+    name: reduxUser.name,
+    email: reduxUser.email,
+    totalBooks: reduxUser.totalBooks,
+    roles: reduxUser.roles || [],
   };
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
 
   return {
     user,
-    loading,
-    fetchUser,
-    setUser,
+    loggedIn: reduxUser.loggedIn,
+    token: reduxUser.token,
   };
 };
 

@@ -13,7 +13,7 @@ function Settings() {
         backgroundColor: "var(--light-100)",
       }}
     >
-      <Info />
+      <Info query={""} setQuery={() => {}} />
     </Stack>
   );
 }

@@ -8,14 +8,6 @@ import { loginUser } from "@/store/reducers/auth.reducer";
 import { RegisterValues } from "@/types/auth";
 import { ROUTES } from "@/utils/constants";
 
-interface ApiResponse<T> {
-  data: T;
-}
-
-interface RegisterResponse {
-  token: string;
-}
-
 const useRegister = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -29,20 +21,20 @@ const useRegister = () => {
     setError(null);
 
     try {
-      const res: ApiResponse<RegisterResponse> = await register(values);
-
-      if (!res.data?.token) {
+      const res = await register(values); 
+      if (!res?.token) {
         setError("Registration failed. Please try again.");
         return false;
       }
 
-      dispatch(loginUser(res.data.token));
+      dispatch(loginUser(res.token));
 
       navigate(ROUTES.AUTH.LOGIN);
 
       return true;
     } catch (err: any) {
-      setError(getErrorMessage(err) || "Registration failed. Please try again.");
+      const msg = getErrorMessage(err) || "Registration failed. Please try again.";
+      setError(msg);
       return false;
     } finally {
       setLoading(false);

@@ -1,12 +1,11 @@
-import { type FC, type CSSProperties, useState, useRef } from "react";
-import { useLocation } from "react-router-dom";
-import { Box, Text, Image, Stack } from "@mantine/core";
+import { type FC, type CSSProperties, useState, useEffect } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { Box, Text, Image, Stack, Center, Anchor } from "@mantine/core";
 
 import Info from "../layout/info";
-import Book3 from "@/assets/book3.jpg";
+import useShelves from "@/hooks/use-shelves";
+import { Link, Shelves } from "@/types/shelves"; 
 
-import EditIcon from "@/assets/icons/edit";
-import SaveIcon from "@/assets/icons/save";
 import BookmarkFill from "@/assets/icons/bookmarkFill";
 import BookmarkFull from "@/assets/icons/bookmarkFull";
 import HeartFill from "@/assets/icons/heartFill";
@@ -25,14 +24,19 @@ const styles: Record<string, CSSProperties> = {
     border: "0.5px solid var(--border-200)",
     borderRadius: 8,
     padding: 3,
+    flex: 1,            
+    display: "flex",
+    flexDirection: "column",
   },
   viewWrapper: {
     backgroundColor: "var(--light-200)",
     borderRadius: 6,
     display: "flex",
     flexDirection: "column",
-    padding: "40px 20px 20px 20px",
+    gap: 45,
+    padding: 20,
     width: "100%",
+    height: "100%",   
   },
   viewSection: {
     display: "flex",
@@ -48,7 +52,7 @@ const styles: Record<string, CSSProperties> = {
   },
   bookImage: {
     width: 180,
-    height: "auto",
+    height: 190,
     objectFit: "cover",
     border: "0.5px solid var(--border-200)",
     backgroundColor: "var(--light-100)",
@@ -58,25 +62,25 @@ const styles: Record<string, CSSProperties> = {
     cursor: "pointer",
     zIndex: 2,
     marginBottom: -80,
-    marginLeft: 10,
+    marginLeft: 70,
   },
   bookInfo: {
     display: "flex",
     flexDirection: "column",
     gap: 15,
-    paddingTop: 20,
+    paddingTop: 40,
     alignItems: "flex-start",
   },
   bookTitle: {
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 600,
     color: "var(--dark-100)",
-    width: 250,
+    width: 300,
     outline: "none",
     userSelect: "text",
   },
   bookAuthor: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 550,
     color: "var(--dark-100)",
     outline: "none",
@@ -132,6 +136,7 @@ const styles: Record<string, CSSProperties> = {
     border: "0.5px solid var(--border-200)",
     borderRadius: 6,
     cursor: "pointer",
+    textDecoration: "none"
   },
   continueText: {
     fontSize: 9,
@@ -188,7 +193,7 @@ const styles: Record<string, CSSProperties> = {
     flex: 1,
     display: "flex",
     flexDirection: "column",
-    gap: 20,
+    gap: 30,
   },
   detailsBox: {
     display: "flex",
@@ -197,7 +202,7 @@ const styles: Record<string, CSSProperties> = {
     textAlign: "justify",
   },
   detailLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 600,
     color: "var(--dark-100)",
   },
@@ -209,180 +214,179 @@ const styles: Record<string, CSSProperties> = {
     outline: "none",
     userSelect: "text",
   },
+  centerText: {
+    fontSize: 10,
+    fontWeight: 550,
+    color: "var(--dark-200)",
+  },
 };
-
-const mainBook = {
-  title: "Fourth Wing",
-  author: "Rebecca Yarrow",
-  image: Book3,
-  genre: "Fantasy",
-  publication: "May 2, 2023",
-  language: "English",
-  format: "517 pages, Hardcover",
-  isbn: "9781649374042",
-  summary:
-    "Enter the brutal and elite world of a war college for dragon riders... Twenty-year-old Violet Sorrengail was supposed to enter the Scribe Quadrant, living a quiet life among books and history. Now, the commanding general—also known as her tough-as-talons mother—has ordered Violet to join the hundreds of candidates striving to become the elite of Navarre: dragon riders. But when you’re smaller than everyone else and your body is brittle, death is only a heartbeat away...because dragons don’t bond to “fragile” humans. They incinerate them. With fewer dragons willing to bond than cadets, most would kill Violet to better their own chances of success. The rest would kill her just for being her mother’s daughter—like Xaden Riorson, the most powerful and ruthless wingleader in the Riders Quadrant. She’ll need every edge her wits can give her just to see the next sunrise. Yet, with every day that passes, the war outside grows more deadly, the kingdom's protective wards are failing, and the death toll continues to rise. Even worse, Violet begins to suspect leadership is hiding a terrible secret. Friends, enemies, lovers. Everyone at Basgiath War College has an agenda—because once you enter, there are only two ways out: graduate or die.",
-};
-
-type BookType = typeof mainBook;
 
 const BookActions: FC<{
   bookmarked: boolean;
   liked: boolean;
-  isEditing: boolean;
+  googleLink?: string;
   onBookmark: () => void;
   onLike: () => void;
-  onEditToggle: () => void;
-}> = ({ bookmarked, liked, isEditing, onBookmark, onLike, onEditToggle }) => (
+}> = ({ bookmarked, liked, googleLink, onBookmark, onLike }) => (
   <Box style={styles.actionWrapper}>
     <Box style={styles.actionRow}>
-      <Box style={styles.continueBox}>
-        <Text style={styles.continueText}>View Goodreads</Text>
-      </Box>
-
+      {googleLink && (
+        <Anchor href={googleLink} target="_blank" style={styles.continueBox}>
+          <Text style={styles.continueText}>View on Google</Text>
+        </Anchor>
+      )}
       <Box style={styles.iconWrappers}>
         <Box style={styles.iconWrapper}>
-          <Box style={styles.iconBox} onClick={onEditToggle}>
-            {isEditing ? (
-              <SaveIcon style={styles.iconInner} />
-            ) : (
-              <EditIcon style={styles.iconInner} />
-            )}
-          </Box>
-        </Box>
-
-        <Box style={styles.iconWrapper}>
           <Box style={styles.iconBox} onClick={onBookmark}>
-            {bookmarked ? (
-              <BookmarkFull style={styles.iconInner} />
-            ) : (
-              <BookmarkFill style={styles.iconInner} />
-            )}
+            {bookmarked ? <BookmarkFull style={styles.iconInner} /> : <BookmarkFill style={styles.iconInner} />}
           </Box>
         </Box>
-
         <Box style={styles.iconWrapper}>
           <Box style={styles.iconBox} onClick={onLike}>
-            {liked ? (
-              <HeartFull style={styles.iconInner} />
-            ) : (
-              <HeartFill style={styles.iconInner} />
-            )}
+            {liked ? <HeartFull style={styles.iconInner} /> : <HeartFill style={styles.iconInner} />}
           </Box>
         </Box>
       </Box>
     </Box>
-
-    <Box style={styles.actionHr}>
-      <hr style={styles.hrLine} />
-    </Box>
+    <Box style={styles.actionHr}><hr style={styles.hrLine} /></Box>
   </Box>
 );
 
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "-";
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(date);
+  } catch {
+    return dateString;
+  }
+};
+
 const View: FC = () => {
   const location = useLocation();
-  const bookData = (location.state as BookType) || mainBook;
+  const { id } = useParams<{ id: string }>();
+  const { fetchBookDetails, loading } = useShelves();
 
-  const [book, setBook] = useState<BookType>({ ...bookData });
+  const [book, setBook] = useState<Shelves | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
 
-  const tempText = useRef<BookType>({ ...bookData });
+  useEffect(() => {
+  let isMounted = true;
 
-  const fields = ["title", "author", "genre"] as const;
-  const details = [
-    { label: "Publication", key: "publication" },
-    { label: "Language", key: "language" },
-    { label: "Format", key: "format" },
-    { label: "ISBN", key: "isbn" },
-  ];
+  const fetchBook = async () => {
+    try {
+      let data: Shelves | null = null;
 
-  const refs: Record<string, React.RefObject<HTMLDivElement | null>> = Object.fromEntries(
-    [...fields, "summary", ...details.map(d => d.key)].map(key => [key, useRef<HTMLDivElement>(null)])
-  );
+      if (id) data = await fetchBookDetails(id);
 
-  const handleChange = (key: keyof BookType, value: string) => {
-    tempText.current[key] = value;
+      if (!data && location.state) {
+        const fallback = location.state as Shelves;
+        if (fallback?.title) data = fallback;
+      }
+
+      if (isMounted && data) setBook(data);
+    } catch (err) {
+      console.error("Failed to fetch book:", err);
+    }
   };
 
-  const handleEditToggle = () => {
-    setIsEditing(prev => {
-      if (prev) setBook({ ...tempText.current });
-      else tempText.current = { ...book };
-      return !prev;
-    });
-  };
+    fetchBook();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  const googleLink = book?.readLinks?.find(link => link.platform.toLowerCase().includes("google"))?.url;
+
+  const firstLinks: Link[] = [];
+  if (book?.readLinks) {
+    const otherLinks = book.readLinks.filter(link => !link.platform.toLowerCase().includes("google"));
+    firstLinks.push(...otherLinks.slice(0, 3));
+  }
 
   return (
     <Stack gap="10" style={styles.viewBody}>
-      <Info />
-
+      <Info query={""} setQuery={() => {}} />
       <Box style={styles.viewMain}>
         <Box style={styles.viewWrapper}>
           <Box style={styles.viewSection}>
-            <Box style={styles.topSection}>
-              <Image src={book.image} alt={book.title} style={styles.bookImage} />
-              <Box style={styles.bookInfo}>
-                {fields.map(field => (
-                  <Box
-                    key={field}
-                    ref={refs[field]}
-                    contentEditable={isEditing}
-                    suppressContentEditableWarning
-                    onInput={e => handleChange(field, e.currentTarget.textContent || "")}
-                    style={styles[`book${field.charAt(0).toUpperCase() + field.slice(1)}`]}
-                  >
-                    {book[field]}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            <Box style={styles.bottomSection}>
-              <Box style={styles.bottomWrapper}>
-                <BookActions
-                  bookmarked={bookmarked}
-                  liked={liked}
-                  isEditing={isEditing}
-                  onBookmark={() => setBookmarked(!bookmarked)}
-                  onLike={() => setLiked(!liked)}
-                  onEditToggle={handleEditToggle}
-                />
-
-                <Box style={styles.bottomContent}>
-                  <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
-                    <Text style={styles.detailLabel}>Description</Text>
-                    <Box
-                      ref={refs.summary}
-                      contentEditable={isEditing}
-                      suppressContentEditableWarning
-                      onInput={e => handleChange("summary", e.currentTarget.textContent || "")}
-                      style={styles.detailValue}
-                    >
-                      {mainBook.summary}
-                    </Box>
-                  </Box>
-
-                  <Box style={styles.detailsWrapper}>
-                    {details.map(detail => (
-                      <Box key={detail.key} style={styles.detailsBox}>
-                        <Text style={styles.detailLabel}>{detail.label}</Text>
-                        <Box
-                          ref={refs[detail.key]}
-                          contentEditable={isEditing}
-                          suppressContentEditableWarning
-                          onInput={e => handleChange(detail.key as keyof BookType, e.currentTarget.textContent || "")}
-                          style={styles.detailValue}
-                        >
-                          {mainBook[detail.key as keyof BookType]}
-                        </Box>
-                      </Box>
-                    ))}
+            {loading ? (
+              <Center style={{ width: "100%", padding: 50 }}>
+                <Text style={styles.centerText}>Loading book details...</Text>
+              </Center>
+            ) : !book ? (
+              <Center style={{ width: "100%", padding: 50 }}>
+                <Text style={styles.centerText}>No book details available.</Text>
+              </Center>
+            ) : (
+              <>
+                <Box style={styles.topSection}>
+                  <Image
+                    src={book.coverImageUrl || "/placeholder-book.png"}
+                    alt={book.title}
+                    style={styles.bookImage}
+                  />
+                  <Box style={styles.bookInfo}>
+                    <Text style={styles.bookTitle}>{book.title || "-"}</Text>
+                    <Text style={styles.bookAuthor}>
+                      {Array.isArray(book.authors) ? book.authors.join(", ") : book.authors || "-"}
+                    </Text>
                   </Box>
                 </Box>
-              </Box>
-            </Box>
+
+                <Box style={styles.bottomSection}>
+                  <Box style={styles.bottomWrapper}>
+                    <BookActions
+                      bookmarked={bookmarked}
+                      liked={liked}
+                      googleLink={googleLink}
+                      onBookmark={() => setBookmarked(!bookmarked)}
+                      onLike={() => setLiked(!liked)}
+                    />
+
+                    <Box style={styles.bottomContent}>
+                      <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
+                        <Text style={styles.detailLabel}>Description</Text>
+                        <Box
+                          style={styles.detailValue}
+                          dangerouslySetInnerHTML={{ __html: book.description || "-" }}
+                        />
+                      </Box>
+
+                      <Box style={styles.detailsWrapper}>
+                        <Box style={styles.detailsBox}>
+                          <Text style={styles.detailLabel}>Genres</Text>
+                          <Text style={styles.detailValue}>{book.categories || "-"}</Text>
+                        </Box>
+
+                        <Box style={styles.detailsBox}>
+                          <Text style={styles.detailLabel}>Publication</Text>
+                          <Text style={styles.detailValue}>{formatDate(book.publishedDate || "-")}</Text>
+                        </Box>
+
+                        <Box style={styles.detailsBox}>
+                          <Text style={styles.detailLabel}>Format</Text>
+                          <Text style={styles.detailValue}>{book.pageCount || "-"} Pages</Text>
+                        </Box>
+
+                        {firstLinks.length > 0 && (
+                          <Box style={styles.detailsBox}>
+                            <Text style={styles.detailLabel}>Other Links</Text>
+                            {firstLinks.map((link: Link, idx: number) => (
+                              <Anchor key={idx} href={link.url} target="_blank" style={{ ...styles.detailValue, textDecoration: "none" }}>
+                                {link.platform || link.url}
+                              </Anchor>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+              </>
+            )}
           </Box>
         </Box>
       </Box>

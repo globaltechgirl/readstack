@@ -1,25 +1,14 @@
-import { type FC, type CSSProperties, useState } from "react";
-import { Box, Text, Image, Button, Flex, Stack } from "@mantine/core";
+import { type FC, type CSSProperties, useState, useEffect } from "react";
+import { Box, Text, Image, Button, Flex, Stack, Center } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 
 import ArrowLeft from "@/assets/icons/arrowLeft";
 import ArrowRight from "@/assets/icons/arrowRight";
 import HeartFill from "@/assets/icons/heartFill";
 import HeartFull from "@/assets/icons/heartFull";
-
-import Book1 from "@/assets/book1.jpg";
-import Book2 from "@/assets/book2.jpg";
-import Book3 from "@/assets/book3.jpg";
-import Book4 from "@/assets/book4.jpg";
-import Book5 from "@/assets/book5.jpg";
-import Book6 from "@/assets/book6.jpg";
-import Book7 from "@/assets/book7.jpg";
-import Book8 from "@/assets/book8.jpg";
-import Book9 from "@/assets/book9.jpg";
-import Book10 from "@/assets/book10.jpg";
-import Book11 from "@/assets/book11.jpg";
-import Book12 from "@/assets/book12.jpg";
 import Info from "../layout/info";
+import useShelves from "@/hooks/use-shelves";
+import { Shelves } from "@/types/shelves";
 
 const styles: Record<string, CSSProperties> = {
   allBody: {
@@ -34,6 +23,9 @@ const styles: Record<string, CSSProperties> = {
     border: "0.5px solid var(--border-200)",
     borderRadius: 8,
     padding: 3,
+    flex: 1,            
+    display: "flex",
+    flexDirection: "column",
   },
   allWrapper: {
     backgroundColor: "var(--light-200)",
@@ -43,6 +35,7 @@ const styles: Record<string, CSSProperties> = {
     gap: 45,
     padding: 20,
     width: "100%",
+    height: "100%",   
   },
   booksGrid: {
     display: "grid",
@@ -80,7 +73,7 @@ const styles: Record<string, CSSProperties> = {
   },
   bookImage: {
     width: "100%",
-    height: "auto",
+    height: 190,
     padding: 2,
     borderRadius: 8,
     border: "0.5px solid var(--border-200)",
@@ -151,6 +144,7 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     justifyContent: "flex-end",
     marginTop: "-30px",
+    paddingTop: 30,
   },
   paginationButton: {
     backgroundColor: "var(--light-100)",
@@ -169,124 +163,152 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 550,
     padding: "2px 7px 2px 6px",
   },
+  centerText: {
+    fontSize: 10,
+    fontWeight: 550,
+    color: "var(--dark-200)",
+  },
 };
 
-const allBooks = [
-  { title: "Not In Love", author: "Ali Hazelwood", image: Book1, genre: "Romance", tag: "recent" },
-  { title: "Funny Story", author: "Emily Henry", image: Book2, genre: "Romance", tag: "wishlist" },
-  { title: "Fourth Wing", author: "Rebecca Yarrow", image: Book3, genre: "Fantasy", tag: "completed" },
-  { title: "Harry Potter", author: "J.K. Rowling", image: Book4, genre: "Adventure", tag: "recent" },
-  { title: "The Silent Patient", author: "Alex Michaelides", image: Book5, genre: "Thriller", tag: "wishlist" },
-  { title: "Verity", author: "Collen Hoover", image: Book6, genre: "Romance", tag: "completed" },
-  { title: "Atomic Habits", author: "James Clear", image: Book7, genre: "Self Help", tag: "recent" },
-  { title: "The Let Them Theory", author: "Mel Robbins", image: Book8, genre: "Motivation", tag: "wishlist" },
-  { title: "Just For The Summer", author: "Abbey Jimenez", image: Book9, genre: "Romance", tag: "completed" },
-  { title: "Hunger Games", author: "Suzanne Collins", image: Book10, genre: "Dystopian", tag: "recent" },
-  { title: "The Housemaid", author: "Freida McFadden", image: Book11, genre: "Thriller", tag: "wishlist" },
-  { title: "One Golden Summer", author: "Carley Fortune", image: Book12, genre: "Romance", tag: "completed" },
-  { title: "Just For The Summer", author: "Abbey Jimenez", image: Book9, genre: "Romance", tag: "wishlist" },
-  { title: "Hunger Games", author: "Suzanne Collins", image: Book10, genre: "Dystopian", tag: "completed" },
-  { title: "The Housemaid", author: "Freida McFadden", image: Book11, genre: "Thriller", tag: "recent" },
-  { title: "One Golden Summer", author: "Carley Fortune", image: Book12, genre: "Romance", tag: "wishlist" },
-  { title: "The Silent Patient", author: "Alex Michaelides", image: Book5, genre: "Thriller", tag: "completed" },
-  { title: "Verity", author: "Collen Hoover", image: Book6, genre: "Romance", tag: "recent" },
-  { title: "Atomic Habits", author: "James Clear", image: Book7, genre: "Self Help", tag: "wishlist" },
-  { title: "The Let Them Theory", author: "Mel Robbins", image: Book8, genre: "Motivation", tag: "completed" },
-  { title: "Not In Love", author: "Ali Hazelwood", image: Book1, genre: "Romance", tag: "recent" },
-  { title: "Funny Story", author: "Emily Henry", image: Book2, genre: "Romance", tag: "wishlist" },
-  { title: "Fourth Wing", author: "Rebecca Yarrow", image: Book3, genre: "Fantasy", tag: "completed" },
-  { title: "Harry Potter", author: "J.K. Rowling", image: Book4, genre: "Adventure", tag: "recent" },
-];
+interface Book {
+  id: string;
+  image: string;
+  title: string;
+  author: string;
+  tag: string;
+}
 
 const All: FC = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [hovered, setHovered] = useState<number | null>(null);
+  const { searchForBooks, fetchFeaturedBooks, loading } = useShelves();
 
+  const [hovered, setHovered] = useState<number | null>(null);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
   const booksPerPage = 12;
-  const totalPages = Math.ceil(allBooks.length / booksPerPage);
-  const currentBooks = allBooks.slice((page - 1) * booksPerPage, page * booksPerPage);
 
   const toggleFavorite = (idx: number) =>
-    setFavorites((prev) =>
-      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
-    );
+    setFavorites(prev => (prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]));
 
-  const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
-  const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
+  const totalPages = Math.max(1, Math.ceil(books.length / booksPerPage));
+  const currentBooks = books.slice((page - 1) * booksPerPage, page * booksPerPage);
+
+  const handlePrev = () => setPage(prev => Math.max(prev - 1, 1));
+  const handleNext = () => setPage(prev => Math.min(prev + 1, totalPages));
+
+  useEffect(() => {
+    if (!query.trim()) {
+      const fetchFeatured = async () => {
+        try {
+          const featured = await fetchFeaturedBooks();
+          const featuredBooks: Book[] = featured.map(shelf => ({
+            id: shelf.bookId || String(shelf.id || Math.random()),
+            image: shelf.coverImageUrl || "/placeholder-book.png",
+            title: shelf.title || "No title",
+            author: Array.isArray(shelf.authors) ? shelf.authors.join(", ") : "Unknown",
+            tag: shelf.categories?.[0] || "Unknown",
+          }));
+          setBooks(featuredBooks);
+        } catch (error) {
+          console.error("Failed to fetch featured books:", error);
+          setBooks([]);
+        }
+      };
+      fetchFeatured();
+      setPage(1);
+    }
+  }, [query, fetchFeaturedBooks]);
+
+  useEffect(() => {
+    const handler = setTimeout(async () => {
+      if (!query.trim()) return;
+
+      try {
+        const results = await searchForBooks(query);
+        const resultsArray: Shelves[] = Array.isArray(results) ? results : [results];
+
+        const searchBooksArray: Book[] = resultsArray.map(shelf => ({
+          id: shelf.bookId || String(shelf.id || Math.random()),
+          image: shelf.coverImageUrl || "/placeholder-book.png",
+          title: shelf.title || "No title",
+          author: Array.isArray(shelf.authors) ? shelf.authors.join(", ") : "Unknown",
+          tag: shelf.categories?.[0] || "Unknown",
+        }));
+
+        setBooks(searchBooksArray);
+        setPage(1);
+      } catch (error) {
+        console.error("Search error:", error);
+        setBooks([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [query, searchForBooks]);
 
   return (
     <Stack gap="10" style={styles.allBody}>
-      <Info />
+      <Info query={query} setQuery={setQuery} />
 
       <Box style={styles.allMain}>
         <Box style={styles.allWrapper}>
-          <Box style={styles.booksGrid}>
-            {currentBooks.map((book, idx) => (
-              <Box
-                key={idx}
-                style={styles.bookCard}
-                onMouseEnter={() => setHovered(idx)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                <Box style={styles.bookWrapper}>
-                  <Box style={styles.bookMain}>
-                    <Image src={book.image} alt={book.title} style={styles.bookImage} />
-                  </Box>
-
-                  <Box style={styles.genreRibbon}>{book.tag}</Box>
-
-                  <Box
-                    style={{
-                      ...styles.overlay,
-                      ...(hovered === idx ? styles.overlayVisible : {}),
-                    }}
-                    onClick={() => navigate(`/books/view-all/${idx}`, { state: book })}
-                  >
-                    <Box onClick={(e) => {e.stopPropagation(); toggleFavorite(idx); }}>
-                      {favorites.includes(idx) ? (
-                        <HeartFull style={styles.overlayIcon} />
-                      ) : (
-                        <HeartFill style={styles.overlayIcon} />
-                      )}
+          {loading && books.length === 0 ? (
+            <Center style={{ width: "100%", padding: 50 }}>
+              <Text style={styles.centerText}>Loading all books...</Text>
+            </Center>
+          ) : currentBooks.length === 0 ? (
+            <Center style={{ width: "100%", padding: 50 }}>
+              <Text style={styles.centerText}>
+                {query ? "No books found" : "No featured books available"}
+              </Text>
+            </Center>
+          ) : (
+            <Box style={styles.booksGrid}>
+              {currentBooks.map((book, idx) => (
+                <Box key={book.id} style={styles.bookCard} onMouseEnter={() => setHovered(idx)} onMouseLeave={() => setHovered(null)}>
+                  <Box style={styles.bookWrapper}>
+                    <Box style={styles.bookMain}>
+                      <Image src={book.image} alt={book.title} style={styles.bookImage} />
+                    </Box>
+                    <Box style={styles.genreRibbon}>{book.tag}</Box>
+                    <Box
+                      style={{ ...styles.overlay, ...(hovered === idx ? styles.overlayVisible : {}) }}
+                      onClick={() => navigate(`/books/${book.id}`, { state: { book } })}
+                    >
+                      <Box
+                        onClick={e => {
+                          e.stopPropagation();
+                          toggleFavorite(idx);
+                        }}
+                      >
+                        {favorites.includes(idx) ? <HeartFull style={styles.overlayIcon} /> : <HeartFill style={styles.overlayIcon} />}
+                      </Box>
                     </Box>
                   </Box>
+                  <Box style={styles.bookTexts}>
+                    <Text style={styles.bookTitle}>{book.title}</Text>
+                    <Text style={styles.bookAuthor}>{book.author}</Text>
+                  </Box>
                 </Box>
+              ))}
 
-                <Box style={styles.bookTexts}>
-                  <Text style={styles.bookTitle}>{book.title}</Text>
-                  <Text style={styles.bookAuthor}>{book.author}</Text>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-
-          <Flex style={styles.paginationContainer}>
-            <Flex gap={4} align="center">
-              <Button
-                size="17.5"
-                variant="outline"
-                disabled={page === 1}
-                onClick={handlePrev}
-                styles={{ root: styles.paginationButton }}
-              >
-                <ArrowLeft width={10} height={10} />
-              </Button>
-
-              <Text style={styles.paginationText}>{page}</Text>
-
-              <Button
-                size="17.5"
-                variant="outline"
-                disabled={page === totalPages}
-                onClick={handleNext}
-                styles={{ root: styles.paginationButton }}
-              >
-                <ArrowRight width={10} height={10} />
-              </Button>
-            </Flex>
-          </Flex>
+              {books.length > 0 && (
+                <Flex style={{...styles.paginationContainer, gridColumn: "1 / -1", }}>
+                  <Flex gap={4} align="center">
+                    <Button size="17.5" variant="outline" disabled={page === 1} onClick={handlePrev} styles={{ root: styles.paginationButton }}>
+                      <ArrowLeft width={10} height={10} />
+                    </Button>
+                    <Text style={styles.paginationText}>{page}</Text>
+                    <Button size="17.5" variant="outline" disabled={page === totalPages} onClick={handleNext} styles={{ root: styles.paginationButton }}>
+                      <ArrowRight width={10} height={10} />
+                    </Button>
+                  </Flex>
+                </Flex>
+              )}
+            </Box>
+          )}
         </Box>
       </Box>
     </Stack>

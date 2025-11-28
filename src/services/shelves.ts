@@ -1,64 +1,80 @@
 import { AxiosResponse } from "axios";
 import { useAxiosApi } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
-import { Shelves } from "@/types/shelves";
+import { Shelves, ShelvesResponse } from "@/types/shelves";
 import { ApiAuthModes } from "@/types/enums";
+
+export type UploadResp = {
+  message: string;
+  shelf: string;
+  id: string;
+};
 
 const shelvesService = () => {
   const authApi = useAxiosApi(ApiAuthModes.BearerToken);
 
-  const getAllBooks = async (
-    page = 0,
-    size = 20
-  ): Promise<{ content: Shelves[]; totalPages: number; totalElements: number }> => {
-    const res: AxiosResponse<any> = await authApi.get(
-      `${ENDPOINTS.SHELVES.GET_ALL}?page=${page}&size=${size}`
+  const searchBooks = async (query: string): Promise<Shelves[]> => {
+    const res: AxiosResponse<Shelves[]> = await authApi.get(
+      `${ENDPOINTS.BOOKS.SEARCH}?q=${encodeURIComponent(query)}`
+    );
+    return res.data ?? [];
+  };
+
+  const getBookDetails = async (id: string): Promise<Shelves> => {
+    const res: AxiosResponse<Shelves> = await authApi.get(
+      ENDPOINTS.BOOKS.DETAILS(id)
     );
     return res.data;
   };
 
-  const getBookById = async (id: number | string): Promise<Shelves> => {
-    try {
-      const res: AxiosResponse<Shelves> = await authApi.get(
-        ENDPOINTS.SHELVES.GET_BY_ID(id)
-      );
-      return res.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) throw new Error("Book not found");
-      if (error.response?.status === 403) throw new Error("Unauthorized access");
-      throw error;
-    }
+  const getFeaturedBooks = async (): Promise<Shelves[]> => {
+    const res: AxiosResponse<Shelves[]> = await authApi.get(
+      ENDPOINTS.BOOKS.FEATURED
+    );
+    return res.data ?? [];
   };
 
-  const searchDatabaseBooks = async (
-    query: string,
-    page = 0,
-    size = 20
-  ): Promise<{ content: Shelves[]; totalPages: number; totalElements: number }> => {
-    const res = await authApi.get(
-      `${ENDPOINTS.SHELVES.SEARCH_DB}?query=${encodeURIComponent(query)}&page=${page}&size=${size}`
+  const uploadBook = async (formData: FormData): Promise<UploadResp> => {
+    const res: AxiosResponse<UploadResp> = await authApi.post(
+      ENDPOINTS.BOOKS.UPLOAD,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
     );
     return res.data;
   };
 
-  const searchExternalBooks = async (query: string): Promise<Shelves[]> => {
-    const res = await authApi.get(
-      `${ENDPOINTS.SHELVES.SEARCH_EXTERNAL}?query=${encodeURIComponent(query)}`
+  const addBookToShelf = async (isbn: string): Promise<UploadResp> => {
+    const res: AxiosResponse<UploadResp> = await authApi.post(
+      ENDPOINTS.USER_BOOKS.ADD,
+      { bookId: isbn } 
     );
     return res.data;
   };
 
-  const importBook = async (googleBooksId: string): Promise<Shelves> => {
-    const res = await authApi.post(ENDPOINTS.SHELVES.IMPORT_BOOK(googleBooksId));
+  const getAllShelves = async (): Promise<ShelvesResponse> => {
+    const res: AxiosResponse<ShelvesResponse> = await authApi.get(ENDPOINTS.SHELVES.GET_ALL);
+    return res.data;
+  };
+
+  const moveBookToShelf = async (isbn: string, newShelf: string): Promise<{ bookId: string; message: string; newShelf: string }> => {
+    const res: AxiosResponse<{ bookId: string; message: string; newShelf: string }> = await authApi.put(
+      ENDPOINTS.USER_BOOKS.MOVE_SHELF(isbn),
+      { newShelf }
+    );
+    console.log("moveBookToShelf response:", res.data);
     return res.data;
   };
 
   return {
-    getAllBooks,
-    getBookById,
-    searchDatabaseBooks,
-    searchExternalBooks,
-    importBook,
+    searchBooks,
+    getBookDetails,
+    getFeaturedBooks,
+    uploadBook,
+    addBookToShelf,
+    getAllShelves, 
+    moveBookToShelf, 
   };
 };
 

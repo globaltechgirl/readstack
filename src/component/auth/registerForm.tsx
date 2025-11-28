@@ -143,6 +143,8 @@ const RegisterForm: FC = () => {
   });
 
   const onSubmit = async (values: typeof form.values) => {
+    console.log("Payload being sent:", values);
+
     await handleFormSubmit(values);
   };
 

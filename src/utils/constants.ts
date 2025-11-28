@@ -17,17 +17,11 @@ export const ROUTES = {
 
   BOOKS: {
     ROOT: "/books",
-    VIEW_ALL: "/books/view-all",
+    ALL: "/books/all",
     RECENT: "/books/recent",
     COMPLETED: "/books/completed",
     WISHLIST: "/books/wishlist",
-    FAVORITES: "/books/favorites",
-
-    VIEW_ALL_ID: "/books/view-all/:id",
-    VIEW_RECENT_ID: "/books/recent/:id",
-    VIEW_COMPLETED_ID: "/books/completed/:id",
-    VIEW_WISHLIST_ID: "/books/wishlist/:id",
-    VIEW_FAVORITES_ID: "/books/favorites/:id",
+    VIEW_BOOK_DETAILS: "/books/:id",
   },
 
   SHELVES: {
@@ -62,11 +56,10 @@ export const NavLinks = [
     link: ROUTES.BOOKS.ROOT,
     icon: BooksIcon,
     subNav: [
-      { label: "View All", link: ROUTES.BOOKS.VIEW_ALL },
+      { label: "View All", link: ROUTES.BOOKS.ALL },
       { label: "Recent", link: ROUTES.BOOKS.RECENT },
       { label: "Completed", link: ROUTES.BOOKS.COMPLETED },
       { label: "Wishlist", link: ROUTES.BOOKS.WISHLIST },
-      { label: "Favorites", link: ROUTES.BOOKS.FAVORITES },
     ],
   },
   {

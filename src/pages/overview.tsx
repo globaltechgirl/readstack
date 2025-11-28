@@ -14,7 +14,7 @@ function Overview() {
         backgroundColor: "var(--light-100)",
       }}
     >
-      <Info />
+      <Info query={""} setQuery={() => {}} />
       <Overviews />
     </Stack>
   );

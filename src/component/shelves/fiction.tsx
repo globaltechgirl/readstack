@@ -1,14 +1,11 @@
 import { type FC, type CSSProperties, useState, useEffect } from "react";
-import { Box, Text, Image, Button, Flex, Stack, Loader } from "@mantine/core";
-import { useNavigate } from "react-router-dom";
+import { Box, Text, Image, Button, Flex, Stack, Center } from "@mantine/core";
 
 import ArrowLeft from "@/assets/icons/arrowLeft";
 import ArrowRight from "@/assets/icons/arrowRight";
-import BookmarkFill from "@/assets/icons/bookmarkFill";
-import BookmarkFull from "@/assets/icons/bookmarkFull";
-
-import Info from "../layout/info";
 import useShelves from "@/hooks/use-shelves";
+import Info from "../layout/info";
+import { ApiBook, ShelvesResponse } from "@/types/shelves";
 
 const styles: Record<string, CSSProperties> = {
   fictionBody: {
@@ -23,6 +20,9 @@ const styles: Record<string, CSSProperties> = {
     border: "0.5px solid var(--border-200)",
     borderRadius: 8,
     padding: 3,
+    flex: 1,            
+    display: "flex",
+    flexDirection: "column",
   },
   fictionWrapper: {
     backgroundColor: "var(--light-200)",
@@ -32,32 +32,7 @@ const styles: Record<string, CSSProperties> = {
     gap: 45,
     padding: 20,
     width: "100%",
-  },
-  filterBar: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: -20,
-  },
-  filterBox: {
-    backgroundColor: "var(--light-100)",
-    border: "0.5px solid var(--border-200)",
-    borderRadius: 8,
-    padding: 2,
-  },
-  filterButton: {
-    fontSize: 8.5,
-    fontWeight: 550,
-    padding: "3px 10px",
-    backgroundColor: "var(--light-200)",
-    borderRadius: 6,
-    cursor: "pointer",
-    color: "var(--dark-200)",
-    transition: "all 0.25s ease",
-  },
-  filterButtonActive: {
-    backgroundColor: "var(--dark-300)",
-    color: "var(--dark-100)",
+    height: "100%",   
   },
   booksGrid: {
     display: "grid",
@@ -72,6 +47,7 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "center",
     gap: 10,
     textAlign: "center",
+    marginBottom: 30,
   },
   bookWrapper: {
     position: "relative",
@@ -95,7 +71,7 @@ const styles: Record<string, CSSProperties> = {
   },
   bookImage: {
     width: "100%",
-    height: "auto",
+    height: 190,
     padding: 2,
     borderRadius: 8,
     border: "0.5px solid var(--border-200)",
@@ -103,7 +79,7 @@ const styles: Record<string, CSSProperties> = {
     objectFit: "cover",
     cursor: "pointer",
   },
-  overlay: {
+  bookmark: {
     position: "absolute",
     top: 0,
     left: 0,
@@ -120,15 +96,42 @@ const styles: Record<string, CSSProperties> = {
     cursor: "pointer",
     pointerEvents: "none",
   },
-  overlayVisible: {
+  bookmarkVisible: {
     opacity: 1,
     pointerEvents: "auto",
   },
-  overlayIcon: {
+  bookmarkIcon: {
     width: 14,
     height: 14,
     cursor: "pointer",
     color: "var(--border-100)",
+  },
+  bookmarkMain: {
+    position: "absolute",
+    top: 28,
+    left: 10,
+    width: "fit-content",
+    padding: 2,
+    backgroundColor: "var(--light-100)",
+    border: "0.5px solid var(--border-200)",
+    borderRadius: 6,
+    zIndex: 10,
+  },
+  bookmarkDropdown: {
+    padding: 2,
+    borderRadius: 5,
+    backgroundColor: "var(--light-200)",
+    overflow: "hidden",
+  },
+  bookmarkOption: {
+    padding: "4px 12px",
+    cursor: "pointer",
+    fontSize: 9,
+    fontWeight: 550,
+    color: "var(--dark-200)",
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "flex-start"
   },
   genreRibbon: {
     position: "absolute",
@@ -166,6 +169,7 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     justifyContent: "flex-end",
     marginTop: "-30px",
+    marginRight: 10,
   },
   paginationButton: {
     backgroundColor: "var(--light-100)",
@@ -173,7 +177,7 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: 5,
     color: "var(--dark-100)",
     padding: "0 3.5px",
-    width: "fit-content"
+    width: "fit-content",
   },
   paginationText: {
     backgroundColor: "var(--light-100)",
@@ -184,185 +188,182 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 550,
     padding: "2px 7px 2px 6px",
   },
+  centerText: {
+    fontSize: 10,
+    fontWeight: 550,
+    color: "var(--dark-200)",
+  },
 };
 
+interface BookDisplay {
+  isbn: string;
+  id?: string | number | null;
+  title: string;
+  author: string;
+  image: string;
+  genre: string;
+  rating: number;
+  progress: number;
+}
+
+const TOP_FICTION_GENRES = [
+  "Fantasy",
+  "Science Fiction",
+  "Mystery",
+  "Thriller",
+  "Romance",
+  "Historical Fiction",
+  "Horror",
+  "Young Adult",
+  "Adventure",
+  "Dystopian",
+];
+
 const Fiction: FC = () => {
-  const navigate = useNavigate();
-  const { startGetAllBooks, startGetBook } = useShelves();
+  const { fetchAllShelves, loading } = useShelves();
 
+  const [allBooks, setAllBooks] = useState<BookDisplay[]>([]);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [page, setPage] = useState(1);
-  const [bookmarks, setBookmarks] = useState<string[]>([]);
-  const [hovered, setHovered] = useState<number | null>(null);
-  const [selectedGenre, setSelectedGenre] = useState("All");
-  const [books, setBooks] = useState<any[]>([]);
-  const [genres, setGenres] = useState<string[]>(["All"]);
-  const [fetchDone, setFetchDone] = useState(false);
-
-  const predefinedGenres = [
-    "All","Romance","Fantasy","Sci-Fi","Mystery","Thriller",
-    "Horror","Adventure","Historical Fiction","Dystopian","Drama"
-  ];
-
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const data = await startGetAllBooks(0, 100);
-        if (!data?.content?.length) {
-          setBooks([]);
-        } else {
-          setBooks(data.content);
-        }
-        setGenres(predefinedGenres);
-      } finally {
-        setFetchDone(true);
-      }
-    };
-    fetchBooks();
-  }, [startGetAllBooks]);
-
-  const toggleBookmark = (bookId: string) =>
-    setBookmarks(prev => prev.includes(bookId) ? prev.filter(id => id !== bookId) : [...prev, bookId]);
-
-  const filteredBooks =
-    selectedGenre === "All"
-      ? books
-      : books.filter((book) =>
-          (book.categories || []).some(
-            (c: string) =>
-              predefinedGenres.map((g) => g.toLowerCase()).includes(c.toLowerCase()) &&
-              c.toLowerCase() === selectedGenre.toLowerCase()
-          )
-        );
 
   const booksPerPage = 12;
-  const totalPages = Math.max(Math.ceil(filteredBooks.length / booksPerPage), 1);
-  const currentBooks = filteredBooks.slice((page - 1) * booksPerPage, page * booksPerPage);
 
-  const handlePrev = () => setPage(prev => Math.max(prev - 1, 1));
-  const handleNext = () => setPage(prev => Math.min(prev + 1, totalPages));
+  useEffect(() => {
+    const loadFictionBooks = async () => {
+      if (initialLoadDone) return;
 
-  const handleBookClick = async (bookId: string) => {
-    const book = await startGetBook(bookId);
-    if (book) {
-      navigate(`/shelves/fiction/${bookId}`, { state: book });
-    }
-  };
+      try {
+        const shelvesResponse: ShelvesResponse | null = await fetchAllShelves();
+
+        if (!shelvesResponse?.wantToRead || shelvesResponse.wantToRead.length === 0) {
+          setAllBooks([]);
+          setInitialLoadDone(true);
+          return;
+        }
+        const combinedBooks = [
+          ...(shelvesResponse.currentlyReading ?? []),
+          ...(shelvesResponse.wantToRead ?? []),
+          ...(shelvesResponse.read ?? []),
+        ];
+
+        const formatted: BookDisplay[] = combinedBooks
+          .map((item: ApiBook) => ({
+            id: String(item.book?.isbn ?? item.userBook?.bookId ?? ""),
+            isbn: item.book?.isbn ?? item.userBook?.bookId ?? "",
+            title: item.book?.title ?? item.userBook?.title ?? "Unknown Title",
+            author:
+              item.book?.author ??
+              item.book?.authors?.[0] ??
+              item.userBook?.author ??
+              item.userBook?.authors?.[0] ??
+              "Unknown Author",
+            image:
+              item.book?.coverUrl ??
+              item.book?.coverImageUrl ??
+              item.userBook?.coverUrl ??
+              item.userBook?.coverImageUrl ??
+              "",
+            genre: String(
+              item.book?.genre ??
+                item.book?.categories?.[0] ??
+                item.userBook?.categories?.[0] ??
+                "Unknown"
+            ),
+            rating: item.userBook?.averageRating ?? 0,
+            progress: item.userBook?.progress ?? 0,
+          }))
+
+          .filter((book) => {
+            const normalizedGenre = book.genre.toLowerCase().replace(/[-\s]/g, "");
+            return TOP_FICTION_GENRES.some(
+              (genre) => normalizedGenre.includes(genre.toLowerCase().replace(/[-\s]/g, ""))
+            );
+          });
+
+        setAllBooks(formatted);
+        setInitialLoadDone(true);
+      } catch (err) {
+        console.error("Failed to load shelves:", err);
+        setAllBooks([]);
+        setInitialLoadDone(true);
+      }
+    };
+
+    loadFictionBooks();
+  }, [fetchAllShelves, initialLoadDone]);
+
+  const totalPages = Math.ceil(allBooks.length / booksPerPage);
+  const currentBooks = allBooks.slice((page - 1) * booksPerPage, page * booksPerPage);
+
+  const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
+  const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
+
+
 
   return (
     <Stack gap="10" style={styles.fictionBody}>
-      <Info />
+      <Info query={""} setQuery={() => {}} />
 
       <Box style={styles.fictionMain}>
         <Box style={styles.fictionWrapper}>
-          <Flex style={styles.filterBar}>
-            {genres.map((genre) => (
-              <Box style={styles.filterBox} key={genre}>
-                <Box
-                  style={{
-                    ...styles.filterButton,
-                    ...(selectedGenre === genre ? styles.filterButtonActive : {}),
-                  }}
-                  onClick={() => {
-                    setSelectedGenre(genre);
-                    setPage(1);
-                  }}
-                >
-                  {genre}
-                </Box>
-              </Box>
-            ))}
-          </Flex>
-
-          {!fetchDone ? (
-            <Flex justify="center" align="center" style={{ height: 300 }}>
-              <Loader />
-            </Flex>
-          ) : filteredBooks.length > 0 ? (
-            <Box style={styles.booksGrid}>
-              {currentBooks.map((book, idx) => {
-                const bookId = book.googleBooksId || `${book.title}-${idx}`;
-                return (
-                  <Box
-                    key={bookId}
-                    style={styles.bookCard}
-                    onMouseEnter={() => setHovered(idx)}
-                    onMouseLeave={() => setHovered(null)}
-                  >
-                    <Box style={styles.bookWrapper}>
-                      <Box style={styles.bookMain}>
-                        <Image
-                          src={book.coverImageUrl || "/placeholder-book.jpg"}
-                          alt={book.title}
-                          style={styles.bookImage}
-                        />
-                      </Box>
-
-                      <Box style={styles.genreRibbon}>
-                        {book.categories?.[0] || "Unknown"}
-                      </Box>
-
-                      <Box
-                        style={{
-                          ...styles.overlay,
-                          ...(hovered === idx ? styles.overlayVisible : {}),
-                        }}
-                        onClick={() => handleBookClick(bookId)}
-                      >
-                        <Box
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleBookmark(bookId);
-                          }}
-                        >
-                          {bookmarks.includes(bookId) ? (
-                            <BookmarkFull style={styles.overlayIcon} />
-                          ) : (
-                            <BookmarkFill style={styles.overlayIcon} />
-                          )}
-                        </Box>
-                      </Box>
-                    </Box>
-
-                    <Box style={styles.bookTexts}>
-                      <Text style={styles.bookTitle}>{book.title}</Text>
-                      <Text style={styles.bookAuthor}>{book.author}</Text>
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Box>
+          {loading && !initialLoadDone ? (
+            <Center style={{ width: "100%", padding: 50 }}>
+              <Text style={styles.centerText}>Loading fiction books...</Text>
+            </Center>
+          ) : allBooks.length === 0 ? (
+            <Center style={{ width: "100%", padding: 50 }}>
+              <Text style={styles.centerText}>No fiction books found.</Text>
+            </Center>
           ) : (
-            <Text style={{ textAlign: "center", marginTop: 50 }}>
-              No books found.
-            </Text>
+            <Box style={styles.booksGrid}>
+              {currentBooks.map((book, idx) => (
+                <Box
+                  key={book.id || idx} 
+                  style={styles.bookCard}
+                >
+                  <Box style={styles.bookWrapper}>
+                    <Box style={styles.bookMain}>
+                      <Image src={book.image} alt={book.title} style={styles.bookImage} />
+                    </Box>
+
+                    <Box style={styles.genreRibbon}>{book.genre}</Box>
+                  </Box>
+
+                  <Box style={styles.bookTexts}>
+                    <Text style={styles.bookTitle}>{book.title}</Text>
+                    <Text style={styles.bookAuthor}>{book.author}</Text>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
           )}
-
-          <Flex style={styles.paginationContainer}>
-            <Flex gap={4} align="center">
-              <Button
-                size="17.5"
-                variant="outline"
-                disabled={page === 1}
-                onClick={handlePrev}
-                styles={{ root: styles.paginationButton }}
-              >
-                <ArrowLeft width={10} height={10} />
-              </Button>
-
-              <Text style={styles.paginationText}>{page}</Text>
-
-              <Button
-                size="17.5"
-                variant="outline"
-                disabled={page === totalPages}
-                onClick={handleNext}
-                styles={{ root: styles.paginationButton }}
-              >
-                <ArrowRight width={10} height={10} />
-              </Button>
-            </Flex>
-          </Flex>
         </Box>
+
+        <Flex style={styles.paginationContainer}>
+          <Flex gap={4} align="center">
+            <Button
+              size="17.5"
+              variant="outline"
+              disabled={page === 1}
+              onClick={handlePrev}
+              styles={{ root: styles.paginationButton }}
+            >
+              <ArrowLeft width={10} height={10} />
+            </Button>
+
+            <Text style={styles.paginationText}>{page}</Text>
+
+            <Button
+              size="17.5"
+              variant="outline"
+              disabled={page === totalPages}
+              onClick={handleNext}
+              styles={{ root: styles.paginationButton }}
+            >
+              <ArrowRight width={10} height={10} />
+            </Button>
+          </Flex>
+        </Flex>
       </Box>
     </Stack>
   );

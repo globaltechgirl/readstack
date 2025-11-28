@@ -3,29 +3,23 @@ import { useAxiosApi } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
 import { ApiAuthModes } from "@/types/enums";
 
-export interface User {
-  id: number;
-  username: string;
+export interface UserResponse {
+  userId: string;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  bio?: string | null;
-  profileImageUrl?: string | null;
-  createdAt: string;
+  totalBooks: number;
+  roles: { authority: string }[];
 }
 
 const userService = () => {
   const authApi = useAxiosApi(ApiAuthModes.BearerToken);
 
-  const getCurrentUser = async (): Promise<User> => {
-    const res: AxiosResponse<User> = await authApi.get(ENDPOINTS.AUTH.ME);
+  const getUserDetails = async (): Promise<UserResponse> => {
+    const res: AxiosResponse<UserResponse> = await authApi.get(ENDPOINTS.AUTH.ME);
     return res.data;
   };
 
-  return {
-    getCurrentUser,
-  };
+  return { getUserDetails };
 };
 
 export default userService;
