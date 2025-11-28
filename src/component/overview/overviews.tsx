@@ -1,12 +1,12 @@
-import type { FC, CSSProperties } from "react";
+import type { FC, CSSProperties, JSX } from "react";
 import { useEffect, useState } from "react";
 import { Box, Text, Image } from "@mantine/core";
 
-import BookmarkFill from "@/assets/icons/bookmarkFill";
 import useShelves from "@/hooks/use-shelves";
 import { useNavigate } from "react-router-dom";
-import Toast from "../layout/toast";
-import BookmarkFull from "@/assets/icons/bookmarkFull";
+import StarIcon from "@/assets/icons/star";
+import HalfStarIcon from "@/assets/icons/halfStar";
+import FullStarIcon from "@/assets/icons/fullStar";
 
 const styles: Record<string, CSSProperties> = {
   overviewsMain: {
@@ -35,7 +35,16 @@ const styles: Record<string, CSSProperties> = {
     flexDirection: "column",
     gap: 10,
   },
+  topLeftWrapper: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+    flex: 1,
+    width: "100%",
+  },
   topLeftBox: {
+    flex: 1,
     display: "flex",
     gap: 25,
     marginTop: 10,
@@ -183,39 +192,6 @@ const styles: Record<string, CSSProperties> = {
     justifyContent: "space-between",
     alignItems: "center",
   },
-  bookmarkIcon: {
-    width: 14,
-    height: 14,
-    cursor: "pointer",
-    color: "var(--border-100)",
-  },
-  bookmarkMain: {
-    position: "absolute",
-    bottom: 20,
-    left: -60,
-    width: "fit-content",
-    padding: 2,
-    backgroundColor: "var(--light-100)",
-    border: "0.5px solid var(--border-200)",
-    borderRadius: 6,
-    zIndex: 10,
-  },
-  bookmarkDropdown: {
-    padding: 2,
-    borderRadius: 5,
-    backgroundColor: "var(--light-200)",
-    overflow: "hidden",
-  },
-  bookmarkOption: {
-    padding: "4px 12px",
-    cursor: "pointer",
-    fontSize: 9,
-    fontWeight: 550,
-    color: "var(--dark-200)",
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "flex-start"
-  },
   scheduleMain: {
     padding: 3,
     backgroundColor: "var(--light-100)",
@@ -346,26 +322,18 @@ export interface BookDisplay {
 const BookCard: FC<{
   book: BookDisplay;
   idx: number;
-  handleAddToShelf: (book: BookDisplay) => void; // <-- changed to BookDisplay
-  isBookmarked?: boolean;
-}> = ({ book, handleAddToShelf, isBookmarked }) => (
-  <Box style={{ ...styles.recommendationCard }}>
-    <Box style={{ ...styles.recommendationBox }}>
+  renderStars: (rating: number) => JSX.Element[];
+}> = ({ book, renderStars }) => (
+  <Box style={styles.recommendationCard}>
+    <Box style={styles.recommendationBox}>
       <Image src={book.image} alt={book.title} style={styles.recommendationImage} />
       <Box style={styles.recommendationInfo}>
         <Box style={styles.infoRow}>
           <Text style={styles.recommendationHeader}>{book.title}</Text>
           <Text style={styles.recommendationText}>{book.author}</Text>
         </Box>
-        <Box style={{ display: "flex", justifyContent: "flex-end" }}>
-          {isBookmarked ? (
-            <BookmarkFull style={styles.bookmarkIcon} />
-          ) : (
-            <BookmarkFill
-              style={styles.bookmarkIcon}
-              onClick={() => handleAddToShelf(book)} // <-- send full book
-            />
-          )}
+        <Box>
+          <Box style={styles.starRow}>{renderStars(book.rating)}</Box>
         </Box>
       </Box>
     </Box>
@@ -374,53 +342,36 @@ const BookCard: FC<{
 
 const Overviews: FC = () => {
   const navigate = useNavigate();
-  const { fetchAllShelves, fetchFeaturedBooks, addToShelf } = useShelves();
-  const [recentBook, setRecentBook] = useState<BookDisplay | null>(null);
+  const { fetchAllShelves, fetchFeaturedBooks } = useShelves();
+  const [recentBooks, setRecentBooks] = useState<BookDisplay[]>([]);
   const [topRecommendations, setTopRecommendations] = useState<BookDisplay[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [loadingRecommendations, setLoadingRecommendations] = useState(true);
-
-  const [addShelfStatus, setAddShelfStatus] = useState<"idle" | "adding" | "added" | "error">("idle");
-  const [addShelfMessage, setAddShelfMessage] = useState<string | null>(null);
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
-
+ 
   useEffect(() => {
     const loadRecentBook = async () => {
       setLoadingRecent(true);
       try {
         const shelves = await fetchAllShelves();
-        const first = shelves?.currentlyReading?.[0];
-        if (!first) return setRecentBook(null);
+        const recent = shelves?.currentlyReading?.slice(0, 2) || [];
 
-        setRecentBook({
+        const formatted: BookDisplay[] = recent.map((first) => ({
           id: String(first.book?.isbn ?? first.userBook?.bookId ?? ""),
           isbn: first.book?.isbn ?? first.userBook?.bookId ?? "",
           title: first.book?.title ?? first.userBook?.title ?? "Unknown Title",
           author:
-            first.book?.author ??
-            first.book?.authors?.[0] ??
-            first.userBook?.author ??
-            first.userBook?.authors?.[0] ??
-            "Unknown Author",
-          image:
-            first.book?.coverUrl ??
-            first.book?.coverImageUrl ??
-            first.userBook?.coverUrl ??
-            first.userBook?.coverImageUrl ??
-            "/placeholder-book.png",
-          genre: String(
-            first.book?.genre ??
-            first.book?.categories?.[0] ??
-            first.userBook?.categories?.[0] ??
-            "Unknown"
-          ),
+            first.book?.author ?? first.book?.authors?.[0] ?? first.userBook?.author ?? first.userBook?.authors?.[0] ?? "Unknown Author",
+          image: first.book?.coverUrl ?? first.book?.coverImageUrl ?? first.userBook?.coverUrl ?? first.userBook?.coverImageUrl ?? "/placeholder-book.png",
+          genre: String(first.book?.genre ?? first.book?.categories?.[0] ?? first.userBook?.categories?.[0] ?? "Unknown"),
           rating: first.userBook?.averageRating ?? 0,
           progress: first.userBook?.progress ?? 0,
           description: first.book?.description ?? first.userBook?.description ?? "No description available",
-        });
+        }));
+
+        setRecentBooks(formatted);
       } catch (err) {
         console.error(err);
-        setRecentBook(null);
+        setRecentBooks([]);
       } finally {
         setLoadingRecent(false);
       }
@@ -444,13 +395,9 @@ const Overviews: FC = () => {
           progress: 0,
         }));
         setTopRecommendations(formatted.slice(0, 4));
-        setBookmarked(
-          Object.fromEntries(formatted.slice(0, 4).map(book => [book.isbn, false]))
-        );
       } catch (err) {
         console.error(err);
         setTopRecommendations([]);
-        setBookmarked({});
       } finally {
         setLoadingRecommendations(false);
       }
@@ -458,41 +405,14 @@ const Overviews: FC = () => {
     loadRecommendations();
   }, []);
 
-  // Updated to accept full BookDisplay
-  const handleAddToShelfClick = async (book: BookDisplay) => {
-    if (!book?.isbn) {
-      setAddShelfStatus("error");
-      setAddShelfMessage("Upload the book first");
-      setTimeout(() => setAddShelfMessage(null), 3000);
-      return;
-    }
-
-    setAddShelfStatus("adding");
-    setAddShelfMessage(null);
-
-    try {
-      console.log("Sending book to addToShelf:", book);
-
-      const res = await addToShelf(book); 
-      console.log("Response from addToShelf:", res);
-
-      if (res && (res.message || res.id)) {
-        setAddShelfStatus("added");
-        setAddShelfMessage("Book added successfully");
-        setBookmarked(prev => ({ ...prev, [book.isbn]: true }));
-        console.log("Updated bookmarked state for ISBN:", book.isbn);
-      } else {
-        setAddShelfStatus("error");
-        setAddShelfMessage("Failed to add to shelf");
-      }
-    } catch (err: any) {
-      console.error("addToShelf error:", err);
-      setAddShelfStatus("error");
-      setAddShelfMessage(err?.message ?? "Failed to add to shelf");
-    } finally {
-      setTimeout(() => setAddShelfMessage(null), 3000);
-    }
-  };
+  const renderStars = (rating: number) =>
+    Array.from({ length: 5 }, (_, i) => {
+      if (rating >= i + 1)
+        return <FullStarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
+      if (rating >= i + 0.5)
+        return <HalfStarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
+      return <StarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
+    });
 
   return (
     <Box style={styles.overviewsMain}>
@@ -500,25 +420,29 @@ const Overviews: FC = () => {
         <Box style={styles.topSection}>
           <Box style={styles.topLeft}>
             {loadingRecent ? (
-              <Text style={styles.centerText}>Loading recent read...</Text>
-            ) : recentBook ? (
-              <Box style={styles.topLeftBox}>
-                <Image src={recentBook.image} alt={recentBook.title} style={styles.bookImage} />
-                <Box style={styles.bookInfo}>
-                  <Box style={styles.topInfo}>
-                    <Text style={styles.bookTitle}>{recentBook.title}</Text>
-                    <Text style={styles.bookAuthor}>{recentBook.author}</Text>
-                  </Box>
-                  <Box style={styles.bottomInfo}>
-                    <Text style={styles.bookSummary}>{recentBook.description}</Text>
-                    <Box style={styles.continueBox}>
-                      <Text style={styles.continueText}>{recentBook.genre}</Text>
+              <Text style={styles.centerText}>Loading recent reads...</Text>
+            ) : recentBooks.length > 0 ? (
+              <Box style={styles.topLeftWrapper}>
+                {recentBooks.map((book) => (
+                  <Box key={book.id} style={styles.topLeftBox}>
+                    <Image src={book.image} alt={book.title} style={styles.bookImage} />
+                    <Box style={styles.bookInfo}>
+                      <Box style={styles.topInfo}>
+                        <Text style={styles.bookTitle}>{book.title}</Text>
+                        <Text style={styles.bookAuthor}>{book.author}</Text>
+                      </Box>
+                      <Box style={styles.bottomInfo}>
+                        <Text style={styles.bookSummary}>{book.description}</Text>
+                        <Box style={styles.continueBox}>
+                          <Text style={styles.continueText}>{book.genre}</Text>
+                        </Box>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
+                ))}
               </Box>
             ) : (
-              <Text style={styles.centerText}>No recent read found</Text>
+              <Text style={styles.centerText}>No recent reads found</Text>
             )}
           </Box>
         </Box>
@@ -537,8 +461,7 @@ const Overviews: FC = () => {
                   key={book.id}
                   book={book}
                   idx={idx}
-                  handleAddToShelf={handleAddToShelfClick}
-                  isBookmarked={!!bookmarked[book.isbn]}
+                  renderStars={renderStars}
                 />
               ))}
             </Box>
@@ -547,10 +470,6 @@ const Overviews: FC = () => {
           )}
         </Box>
       </Box>
-
-      {addShelfMessage && (
-        <Toast message={addShelfMessage} status={addShelfStatus === "added" ? "success" : "error"} />
-      )}
     </Box>
   );
 };

@@ -3,7 +3,6 @@ import { notifications } from "@mantine/notifications";
 import { getErrorMessage } from "@/api/error";
 import shelvesService from "@/services/shelves";
 import { Shelves, ShelvesResponse } from "@/types/shelves";
-import { BookDisplay } from "@/component/overview/overviews";
 
 const useShelves = () => {
   const { searchBooks, getBookDetails, getFeaturedBooks, uploadBook, addBookToShelf, getAllShelves, moveBookToShelf } = shelvesService();
@@ -58,10 +57,10 @@ const useShelves = () => {
     }
   }, [uploadBook]);
 
-  const addToShelf = useCallback(async (book: BookDisplay) => {
+  const addToShelf = useCallback(async (isbn: string) => {
     setLoading(true);
     try {
-      const res = await addBookToShelf(book);
+      const res = await addBookToShelf(isbn);
       return res;
     } catch (error) {
       return null;

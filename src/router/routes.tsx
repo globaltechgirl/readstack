@@ -20,10 +20,6 @@ import AudiobooksShelves from "@/component/shelves/audiobooks";
 
 import Bookmarks from "@/pages/bookmarks";
 import AdditionBookmarks from "@/component/bookmark/addition";
-import ScheduleBookmarks from "@/component/bookmark/addition";
-
-import Notification from "@/pages/notification";
-import Settings from "@/pages/settings";
 
 import AuthGuard from "@/router/authGuard";
 import { ROUTES } from "@/utils/constants";
@@ -58,11 +54,7 @@ const router = createBrowserRouter([
 
           { path: "bookmarks", element: <Bookmarks /> },
           { path: "bookmarks/addition", element: <AdditionBookmarks /> },
-          { path: "bookmarks/schedule", element: <ScheduleBookmarks /> },
-
-          { path: "notification", element: <Notification /> },
-          { path: "settings", element: <Settings /> },
-
+          
           { path: "*", element: <Navigate to={ROUTES.AUTH.LOGIN} replace /> },
         ],
       },

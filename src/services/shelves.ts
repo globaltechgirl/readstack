@@ -3,7 +3,6 @@ import { useAxiosApi } from "@/api/api";
 import { ENDPOINTS } from "@/api/endpoints";
 import { Shelves, ShelvesResponse } from "@/types/shelves";
 import { ApiAuthModes } from "@/types/enums";
-import { BookDisplay } from "@/component/overview/overviews";
 
 export type UploadResp = {
   message: string;
@@ -46,10 +45,10 @@ const shelvesService = () => {
     return res.data;
   };
 
-  const addBookToShelf = async (book: BookDisplay): Promise<UploadResp> => {
+  const addBookToShelf = async (isbn: string): Promise<UploadResp> => {
     const res: AxiosResponse<UploadResp> = await authApi.post(
       ENDPOINTS.USER_BOOKS.ADD,
-      { ...book }
+      { bookId: isbn } 
     );
     return res.data;
   };

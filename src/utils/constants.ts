@@ -2,8 +2,6 @@ import HomeIcon from "@/assets/icons/home";
 import BooksIcon from "@/assets/icons/books";
 import ShelvesIcon from "@/assets/icons/shelves";
 import BookmarksIcon from "@/assets/icons/bookmarks";
-import NotificationIcon from "@/assets/icons/notification";
-import SettingsIcon from "@/assets/icons/settings";
 
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -78,17 +76,6 @@ export const NavLinks = [
     icon: BookmarksIcon,
     subNav: [
       { label: "Addition", link: ROUTES.BOOKMARKS.ADDITION },
-      { label: "Schedule", link: ROUTES.BOOKMARKS.SCHEDULE },
     ],
-  },
-  {
-    label: "Notification",
-    link: ROUTES.NOTIFICATION,
-    icon: NotificationIcon,
-  },
-  {
-    label: "Settings",
-    link: ROUTES.SETTINGS,
-    icon: SettingsIcon,
   },
 ];
