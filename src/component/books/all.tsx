@@ -178,7 +178,7 @@ interface Book {
   tag: string;
 }
 
-const All: FC = () => {
+const AllBooks: FC = () => {
   const navigate = useNavigate();
   const { searchForBooks, fetchFeaturedBooks, loading } = useShelves();
 
@@ -315,4 +315,4 @@ const All: FC = () => {
   );
 };
 
-export default All;
+export default AllBooks;
