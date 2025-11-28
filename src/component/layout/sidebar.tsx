@@ -4,7 +4,7 @@ import { Box, Avatar } from "@mantine/core";
 import { NavLinks, ROUTES } from "@/utils/constants";
 import Logo from "@/assets/logo.svg";
 
-const GAP_AFTER_LINKS = [ROUTES.OVERVIEW, ROUTES.BOOKMARKS.ROOT];
+const GAP_AFTER_LINKS = [ROUTES.OVERVIEW, ROUTES.SHELVES.ROOT];
 
 const styles: Record<string, CSSProperties> = {
   wrapper: {

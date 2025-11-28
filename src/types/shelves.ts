@@ -4,6 +4,8 @@ export interface Link {
 }
 
 export interface Shelves {
+  userBook: any;
+  book: any;
   id: string | number | null;
   title: string;
   author?: string; 
@@ -14,6 +16,7 @@ export interface Shelves {
   subtitle?: string | null;
   pageCount?: number | null;
   publishedDate?: string | null;
+  publicationDate?: string | null;
   coverUrl?: string;
   coverImageUrl?: string;
   smallCoverImageUrl?: string;

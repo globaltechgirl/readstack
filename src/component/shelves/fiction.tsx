@@ -298,8 +298,6 @@ const Fiction: FC = () => {
   const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
 
-
-
   return (
     <Stack gap="10" style={styles.fictionBody}>
       <Info query={""} setQuery={() => {}} />

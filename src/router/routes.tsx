@@ -45,7 +45,8 @@ const router = createBrowserRouter([
           { path: "books/recent", element: <RecentBooks /> },
           { path: "books/completed", element: <CompletedBooks /> },
           { path: "books/wishlist", element: <WishlistBooks /> },
-          { path: "books/:id", element: <BookView /> },
+          { path: "books/:isbn", element: <BookView /> },
+          { path: "categories/:isbn", element: <BookView /> },
 
           { path: "shelves", element: <Shelves /> },
           { path: "shelves/fiction", element: <FictionShelves /> },

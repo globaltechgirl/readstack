@@ -1,15 +1,14 @@
-import { type FC, type CSSProperties, useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
-import { Box, Text, Image, Stack, Center, Anchor } from "@mantine/core";
+import { type FC, type CSSProperties, useState, useEffect, useRef } from "react";
+import { Box, Text, Image, Stack, Center } from "@mantine/core";
+import { useParams } from "react-router-dom";
 
 import Info from "../layout/info";
-import useShelves from "@/hooks/use-shelves";
-import { Link, Shelves } from "@/types/shelves"; 
-
+import EditIcon from "@/assets/icons/edit";
+import SaveIcon from "@/assets/icons/save";
 import BookmarkFill from "@/assets/icons/bookmarkFill";
 import BookmarkFull from "@/assets/icons/bookmarkFull";
-import HeartFill from "@/assets/icons/heartFill";
-import HeartFull from "@/assets/icons/heartFull";
+import useShelves from "@/hooks/use-shelves";
+import { ApiBook, ShelvesResponse } from "@/types/shelves";
 
 const styles: Record<string, CSSProperties> = {
   viewBody: {
@@ -33,10 +32,8 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: 6,
     display: "flex",
     flexDirection: "column",
-    gap: 45,
-    padding: 20,
+    padding: "40px 20px 20px 20px",
     width: "100%",
-    height: "100%",   
   },
   viewSection: {
     display: "flex",
@@ -52,7 +49,7 @@ const styles: Record<string, CSSProperties> = {
   },
   bookImage: {
     width: 180,
-    height: 190,
+    height: 260,
     objectFit: "cover",
     border: "0.5px solid var(--border-200)",
     backgroundColor: "var(--light-100)",
@@ -61,7 +58,6 @@ const styles: Record<string, CSSProperties> = {
     transform: "rotateY(-2deg)",
     cursor: "pointer",
     zIndex: 2,
-    marginBottom: -80,
     marginLeft: 70,
   },
   bookInfo: {
@@ -105,7 +101,7 @@ const styles: Record<string, CSSProperties> = {
     flexDirection: "column",
     position: "relative",
     zIndex: 1,
-    minHeight: 200,
+    marginTop: "-80px",
   },
   bottomWrapper: {
     backgroundColor: "var(--light-100)",
@@ -223,116 +219,179 @@ const styles: Record<string, CSSProperties> = {
 
 const BookActions: FC<{
   bookmarked: boolean;
-  liked: boolean;
-  googleLink?: string;
+  isEditing: boolean;
+  genre?: string;
   onBookmark: () => void;
-  onLike: () => void;
-}> = ({ bookmarked, liked, googleLink, onBookmark, onLike }) => (
+  onEditToggle: () => void;
+}> = ({ bookmarked, isEditing, onBookmark, genre, onEditToggle }) => (
   <Box style={styles.actionWrapper}>
     <Box style={styles.actionRow}>
-      {googleLink && (
-        <Anchor href={googleLink} target="_blank" style={styles.continueBox}>
-          <Text style={styles.continueText}>View on Google</Text>
-        </Anchor>
-      )}
+      <Box style={styles.continueBox}>
+        <Text style={styles.continueText}>{genre || "Unknown Genre"}</Text>
+      </Box>
+
       <Box style={styles.iconWrappers}>
         <Box style={styles.iconWrapper}>
-          <Box style={styles.iconBox} onClick={onBookmark}>
-            {bookmarked ? <BookmarkFull style={styles.iconInner} /> : <BookmarkFill style={styles.iconInner} />}
+          <Box style={styles.iconBox} onClick={onEditToggle}>
+            {isEditing ? (
+              <SaveIcon style={styles.iconInner} />
+            ) : (
+              <EditIcon style={styles.iconInner} />
+            )}
           </Box>
         </Box>
+
         <Box style={styles.iconWrapper}>
-          <Box style={styles.iconBox} onClick={onLike}>
-            {liked ? <HeartFull style={styles.iconInner} /> : <HeartFill style={styles.iconInner} />}
+          <Box style={styles.iconBox} onClick={onBookmark}>
+            {bookmarked ? (
+              <BookmarkFull style={styles.iconInner} />
+            ) : (
+              <BookmarkFill style={styles.iconInner} />
+            )}
           </Box>
         </Box>
       </Box>
     </Box>
-    <Box style={styles.actionHr}><hr style={styles.hrLine} /></Box>
+
+    <Box style={styles.actionHr}>
+      <hr style={styles.hrLine} />
+    </Box>
   </Box>
 );
 
-const formatDate = (dateString?: string) => {
-  if (!dateString) return "-";
-  try {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(date);
-  } catch {
-    return dateString;
-  }
-};
+interface BookDisplay {
+  isbn: string;
+  id?: string | number | null;
+  title: string;
+  author: string;
+  image: string;
+  genre: string;
+  publication: string;
+  language: string;
+  format: string;
+  summary: string;
+  link?: string;
+  rating?: number;
+  progress?: number;
+}
 
 const View: FC = () => {
-  const location = useLocation();
-  const { id } = useParams<{ id: string }>();
-  const { fetchBookDetails, loading } = useShelves();
+  const { fetchAllShelves } = useShelves();
+  const { isbn } = useParams<{ isbn: string }>();
+  const [, setAllBooks] = useState<BookDisplay[]>([]);
+  const [selectedBook, setSelectedBook] = useState<BookDisplay | null>(null);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-  const [book, setBook] = useState<Shelves | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-  let isMounted = true;
+  const fields = ["title", "author", ] as const;
+  const details = [
+    { label: "Publication", key: "publication" },
+    { label: "Language", key: "language" },
+    { label: "Format", key: "format" },
+    { label: "ISBN", key: "isbn" },
+  ];
 
-  const fetchBook = async () => {
-    try {
-      let data: Shelves | null = null;
+  const refs: Record<string, React.RefObject<HTMLDivElement | null>> = Object.fromEntries(
+    [...fields, "summary", ...details.map(d => d.key)].map(key => [key, useRef<HTMLDivElement>(null)])
+  );
 
-      if (id) data = await fetchBookDetails(id);
-
-      if (!data && location.state) {
-        const fallback = location.state as Shelves;
-        if (fallback?.title) data = fallback;
-      }
-
-      if (isMounted && data) setBook(data);
-    } catch (err) {
-      console.error("Failed to fetch book:", err);
-    }
+  const handleChange = (key: keyof BookDisplay, value: string) => {
+    if (!selectedBook) return;
+    setSelectedBook({ ...selectedBook, [key]: value });
   };
 
-    fetchBook();
+  useEffect(() => {
+    const loadBooks = async () => {
+      if (initialLoadDone) return;
 
-    return () => {
-      isMounted = false;
+      try {
+        const shelvesResponse: ShelvesResponse | null = await fetchAllShelves();
+        const combinedBooks = [
+          ...(shelvesResponse?.currentlyReading ?? []),
+          ...(shelvesResponse?.wantToRead ?? []),
+          ...(shelvesResponse?.read ?? []),
+        ];
+
+        const formatted: BookDisplay[] = combinedBooks.map((item: ApiBook) => ({
+          id: String(item.book?.isbn ?? item.userBook?.bookId ?? ""),
+          isbn: item.book?.isbn ?? item.userBook?.bookId ?? "",
+          title: item.book?.title ?? item.userBook?.title ?? "Unknown Title",
+          author:
+            item.book?.author ??
+            item.book?.authors?.[0] ??
+            item.userBook?.author ??
+            item.userBook?.authors?.[0] ??
+            "Unknown Author",
+          image:
+            item.book?.coverUrl ??
+            item.book?.coverImageUrl ??
+            item.userBook?.coverUrl ??
+            item.userBook?.coverImageUrl ??
+            "",
+          genre:
+            String(
+              item.book?.genre ??
+                item.book?.categories?.[0] ??
+                item.userBook?.categories?.[0] ??
+                "Unknown"
+            ) ?? "Unknown",
+          publication: item.book?.publicationDate ?? item.userBook?.publicationDate ?? "",
+          language: item.book?.language ?? item.userBook?.language ?? "",
+          format: item.book?.format ?? item.userBook?.format ?? "",
+          summary: item.book?.description ?? item.userBook?.description ?? "",
+          rating: item.userBook?.averageRating ?? 0,
+          progress: item.userBook?.progress ?? 0,
+        }));
+
+        setAllBooks(formatted);
+        const bookFromUrl = formatted.find(b => b.isbn === isbn);
+        setSelectedBook(bookFromUrl ?? formatted[0] ?? null);
+        setInitialLoadDone(true);
+      } catch (err) {
+        console.error("Failed to load shelves:", err);
+        setAllBooks([]);
+        setSelectedBook(null);
+        setInitialLoadDone(true);
+      }
     };
-  }, [id]);
 
-  const googleLink = book?.readLinks?.find(link => link.platform.toLowerCase().includes("google"))?.url;
-
-  const firstLinks: Link[] = [];
-  if (book?.readLinks) {
-    const otherLinks = book.readLinks.filter(link => !link.platform.toLowerCase().includes("google"));
-    firstLinks.push(...otherLinks.slice(0, 3));
-  }
+    loadBooks();
+  }, [fetchAllShelves, initialLoadDone]);
 
   return (
     <Stack gap="10" style={styles.viewBody}>
       <Info query={""} setQuery={() => {}} />
+
       <Box style={styles.viewMain}>
         <Box style={styles.viewWrapper}>
           <Box style={styles.viewSection}>
-            {loading ? (
+            {!initialLoadDone ? (
               <Center style={{ width: "100%", padding: 50 }}>
                 <Text style={styles.centerText}>Loading book details...</Text>
               </Center>
-            ) : !book ? (
+            ) : !selectedBook ? (
               <Center style={{ width: "100%", padding: 50 }}>
                 <Text style={styles.centerText}>No book details available.</Text>
               </Center>
             ) : (
               <>
                 <Box style={styles.topSection}>
-                  <Image
-                    src={book.coverImageUrl || "/placeholder-book.png"}
-                    alt={book.title}
-                    style={styles.bookImage}
-                  />
+                  <Image src={selectedBook.image} alt={selectedBook.title} style={styles.bookImage} />
                   <Box style={styles.bookInfo}>
-                    <Text style={styles.bookTitle}>{book.title || "-"}</Text>
-                    <Text style={styles.bookAuthor}>
-                      {Array.isArray(book.authors) ? book.authors.join(", ") : book.authors || "-"}
-                    </Text>
+                    {fields.map(field => (
+                      <Box
+                        key={field}
+                        ref={refs[field]}
+                        contentEditable={isEditing}
+                        suppressContentEditableWarning
+                        onInput={e => handleChange(field, e.currentTarget.textContent || "")}
+                        style={styles[`book${field.charAt(0).toUpperCase() + field.slice(1)}`]}
+                      >
+                        {selectedBook[field]}
+                      </Box>
+                    ))}
                   </Box>
                 </Box>
 
@@ -340,53 +399,48 @@ const View: FC = () => {
                   <Box style={styles.bottomWrapper}>
                     <BookActions
                       bookmarked={bookmarked}
-                      liked={liked}
-                      googleLink={googleLink}
+                      isEditing={isEditing}
+                      genre={selectedBook.genre}
                       onBookmark={() => setBookmarked(!bookmarked)}
-                      onLike={() => setLiked(!liked)}
+                      onEditToggle={() => setIsEditing(!isEditing)}
                     />
 
                     <Box style={styles.bottomContent}>
                       <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
                         <Text style={styles.detailLabel}>Description</Text>
                         <Box
+                          ref={refs.summary}
+                          contentEditable={isEditing}
+                          suppressContentEditableWarning
+                          onInput={e => handleChange("summary", e.currentTarget.textContent || "")}
                           style={styles.detailValue}
-                          dangerouslySetInnerHTML={{ __html: book.description || "-" }}
-                        />
+                        >
+                          {selectedBook.summary}
+                        </Box>
                       </Box>
 
                       <Box style={styles.detailsWrapper}>
-                        <Box style={styles.detailsBox}>
-                          <Text style={styles.detailLabel}>Genres</Text>
-                          <Text style={styles.detailValue}>{book.categories || "-"}</Text>
-                        </Box>
-
-                        <Box style={styles.detailsBox}>
-                          <Text style={styles.detailLabel}>Publication</Text>
-                          <Text style={styles.detailValue}>{formatDate(book.publishedDate || "-")}</Text>
-                        </Box>
-
-                        <Box style={styles.detailsBox}>
-                          <Text style={styles.detailLabel}>Format</Text>
-                          <Text style={styles.detailValue}>{book.pageCount || "-"} Pages</Text>
-                        </Box>
-
-                        {firstLinks.length > 0 && (
-                          <Box style={styles.detailsBox}>
-                            <Text style={styles.detailLabel}>Other Links</Text>
-                            {firstLinks.map((link: Link, idx: number) => (
-                              <Anchor key={idx} href={link.url} target="_blank" style={{ ...styles.detailValue, textDecoration: "none" }}>
-                                {link.platform || link.url}
-                              </Anchor>
-                            ))}
+                        {details.map(detail => (
+                          <Box key={detail.key} style={styles.detailsBox}>
+                            <Text style={styles.detailLabel}>{detail.label}</Text>
+                            <Box
+                              ref={refs[detail.key]}
+                              contentEditable={isEditing}
+                              suppressContentEditableWarning
+                              onInput={e => handleChange(detail.key as keyof BookDisplay, e.currentTarget.textContent || "")}
+                              style={styles.detailValue}
+                            >
+                              {selectedBook[detail.key as keyof BookDisplay]}
+                            </Box>
                           </Box>
-                        )}
+                        ))}
                       </Box>
                     </Box>
                   </Box>
                 </Box>
               </>
             )}
+          
           </Box>
         </Box>
       </Box>

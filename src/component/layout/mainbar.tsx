@@ -176,7 +176,7 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-const addGapAfterLinks = [ROUTES.OVERVIEW, ROUTES.BOOKMARKS.ROOT];
+const addGapAfterLinks = [ROUTES.OVERVIEW, ROUTES.SHELVES.ROOT];
 
 const getNavLinkStyle = (isActive: boolean): CSSProperties => ({
   ...styles.navLink,
