@@ -8,11 +8,6 @@ import Book from "@/assets/logo.svg";
 import SaveIcon from "@/assets/icons/save";
 import BookmarkFill from "@/assets/icons/bookmarkFill";
 import DownloadIcon from "@/assets/icons/download";
-import BoldIcon from "@/assets/icons/bold";
-import UnderlineIcon from "@/assets/icons/underline";
-import SlantIcon from "@/assets/icons/slant";
-import LeftIcon from "@/assets/icons/left";
-import JustifyIcon from "@/assets/icons/justify";
 
 import Toast from "@/component/layout/toast"; 
 import useShelves from "@/hooks/use-shelves";
@@ -257,76 +252,6 @@ const styles: Record<string, CSSProperties> = {
     flexWrap: "wrap",
     flexDirection: "column",
   },
-  toolbarBox: {
-    width: "fit-content",
-    padding: 2,
-    backgroundColor: "var(--light-200)",
-    border: "0.5px solid var(--border-200)",
-    borderRadius: 6,
-    cursor: "pointer",
-    display: "flex",
-  },
-  toolbar: {
-    fontSize: 9,
-    fontWeight: 600,
-    color: "var(--dark-200)",
-    padding: 4,
-    borderRadius: 5,
-    backgroundColor: "var(--light-100)",
-    display: "flex",
-    gap: 8,
-    alignItems: "center",
-    flexWrap: "wrap",
-    width: "100%",
-    height: "100%",
-  },
-  selectBtn: {
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    padding: "2px 6px",
-    borderRadius: 5,
-    backgroundColor: "var(--light-200)",
-    border: "0.5px solid var(--border-200)",
-    color: "var(--dark-200)",
-  },
-  selectText: {
-    fontSize: 9,
-    fontWeight: 550,
-  },
-  iconBtn: {
-    background: "var(--light-200)",
-    border: "0.5px solid var(--border-200)",
-    borderRadius: 5,
-    padding: "4px 6px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  colorBoxWrapper: {
-    width: 18,
-    height: 18,
-    borderRadius: "50%",
-    border: "2px solid var(--border-200)",
-    overflow: "hidden",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "transparent",
-    cursor: "pointer",
-  },
-  colorBox: {
-    width: "100%",
-    height: "100%",
-    border: "none",
-    padding: 0,
-    borderRadius: "50%",
-    background: "transparent",
-    appearance: "none",
-    WebkitAppearance: "none",
-    cursor: "pointer",
-  },
   descriptionEditorBox: {
     width: "100%",
     padding: 2,
@@ -457,8 +382,6 @@ const Addition: FC = () => {
   const [, setShelfOpen] = useState(false);
   const [, setFontOpen] = useState(false);
   const [, setFontSizeOpen] = useState(false);
-  const [selectedFont, setSelectedFont] = useState("Times New Roman");
-  const [selectedFontSize, setSelectedFontSize] = useState("10px");
 
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -466,8 +389,6 @@ const Addition: FC = () => {
   const [addShelfStatus, setAddShelfStatus] = useState<"idle" | "adding" | "added" | "error">("idle");
   const [addShelfMessage, setAddShelfMessage] = useState<string | null>(null);
 
-  const fonts = ["Times New Roman", "Georgia", "Arial", "Verdana"];
-  const fontSizes = ["10px", "12px", "14px", "16px", "18px", "20px"];
   const details = [
     { label: "Publication Date", key: "publication", placeholder: "YYYY-MM-DD" },
     { label: "Language", key: "language", placeholder: "English" },
@@ -591,34 +512,6 @@ const Addition: FC = () => {
     tempText.current.image = url;
   };
 
-  const exec = (command: string, value?: string) => {
-    summaryRef.current?.focus();
-    document.execCommand(command, false, value);
-    setDescription(summaryRef.current?.innerHTML || "");
-  };
-
-  const applyFontSize = (size: string) => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    if (range.collapsed) return;
-
-    const span = document.createElement("span");
-    span.style.fontSize = size;
-    try {
-      range.surroundContents(span);
-    } catch (err) {
-      console.warn("applyFontSize surroundContents failed", err);
-    }
-
-    selection.removeAllRanges();
-    const newRange = document.createRange();
-    newRange.setStartAfter(span);
-    selection.addRange(newRange);
-
-    setDescription(summaryRef.current?.innerHTML || "");
-  };
-
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -697,6 +590,8 @@ const Addition: FC = () => {
                   onFileChange={handleFileChange}
                 />
 
+                <hr style={styles.dottedHr} />
+
                 {details.map((d) => (
                   <InputRow
                     key={d.key}
@@ -713,59 +608,6 @@ const Addition: FC = () => {
                   </Box>
 
                   <Box style={styles.descriptionRight}>
-                    <Box style={styles.toolbarBox}>
-                      <Box style={styles.toolbar}>
-                        <Box
-                          style={{ ...styles.selectBtn, cursor: "pointer", userSelect: "none" }}
-                          onClick={() => {
-                            const nextIndex = (fonts.indexOf(selectedFont) + 1) % fonts.length;
-                            setSelectedFont(fonts[nextIndex]);
-                            exec("fontName", fonts[nextIndex]);
-                          }}
-                        >
-                          <Text style={styles.selectText}>{selectedFont}</Text>
-                        </Box>
-
-                        <Box
-                          style={{ ...styles.selectBtn, cursor: "pointer", userSelect: "none" }}
-                          onClick={() => {
-                            const nextIndex = (fontSizes.indexOf(selectedFontSize) + 1) % fontSizes.length;
-                            const nextSize = fontSizes[nextIndex];
-                            setSelectedFontSize(nextSize);
-                            applyFontSize(nextSize);
-                          }}
-                        >
-                          <Text style={styles.selectText}>{selectedFontSize}</Text>
-                        </Box>
-
-                        <button type="button" style={styles.iconBtn} onClick={() => exec("bold")}>
-                          <BoldIcon style={styles.actionIcon} />
-                        </button>
-                        <button type="button" style={styles.iconBtn} onClick={() => exec("italic")}>
-                          <SlantIcon style={styles.actionIcon} />
-                        </button>
-                        <button type="button" style={styles.iconBtn} onClick={() => exec("underline")}>
-                          <UnderlineIcon style={styles.actionIcon} />
-                        </button>
-
-                        <Box style={styles.colorBoxWrapper}>
-                          <input
-                            type="color"
-                            style={styles.colorBox}
-                            onChange={(e) => exec("foreColor", e.target.value)}
-                            title="Text color"
-                          />
-                        </Box>
-
-                        <button type="button" style={styles.iconBtn} onClick={() => exec("justifyLeft")}>
-                          <LeftIcon style={styles.actionIcon} />
-                        </button>
-                        <button type="button" style={styles.iconBtn} onClick={() => exec("justifyCenter")}>
-                          <JustifyIcon style={styles.actionIcon} />
-                        </button>
-                      </Box>
-                    </Box>
-
                     <Box style={styles.descriptionEditorBox}>
                       <Box
                         ref={summaryRef}

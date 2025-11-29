@@ -3,13 +3,19 @@ import { Box, Text, Image, Stack, Center } from "@mantine/core";
 import { useParams } from "react-router-dom";
 
 import Info from "../layout/info";
+import useShelves from "@/hooks/use-shelves";
+import { ApiBook, ShelvesResponse } from "@/types/shelves";
+import Toast from "../layout/toast";
+import AddReview from "./addReview";
+
 import EditIcon from "@/assets/icons/edit";
 import SaveIcon from "@/assets/icons/save";
 import BookmarkFill from "@/assets/icons/bookmarkFill";
 import BookmarkFull from "@/assets/icons/bookmarkFull";
-import useShelves from "@/hooks/use-shelves";
-import { ApiBook, ShelvesResponse } from "@/types/shelves";
-import Toast from "../layout/toast";
+import StarIcon from "@/assets/icons/star";
+import HalfStarIcon from "@/assets/icons/halfStar";
+import FullStarIcon from "@/assets/icons/fullStar";
+import EditReview from "./editReview";
 
 const styles: Record<string, CSSProperties> = {
   viewBody: {
@@ -207,8 +213,15 @@ const styles: Record<string, CSSProperties> = {
   bottomContent: {
     display: "flex",
     justifyContent: "space-between",
-    gap: 50,
+    flexDirection: "column",
+    gap: 25,
     marginTop: 30,
+  },
+  bottomTop: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "row",
+    gap: 50,
   },
   descriptionBox: {
     flex: 1.5,
@@ -237,6 +250,21 @@ const styles: Record<string, CSSProperties> = {
     lineHeight: 1.6,
     outline: "none",
     userSelect: "text",
+  },
+  bottoBottom: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column"
+  },
+  detailStarred: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  starBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
   },
   centerText: {
     fontSize: 10,
@@ -353,8 +381,12 @@ const CategoryView: FC = () => {
   const [bookmarkOpen, setBookmarkOpen] = useState<number | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastStatus, setToastStatus] = useState<"success" | "error">("success");
-  const [isEditing, setIsEditing] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+
+  const [ isEditing ] = useState(false);
+  const [showAddReview, setShowAddReview] = useState(false);
+  const [reviews, setReviews] = useState<{ reviewText: string; rating: number }[]>([]);
+  const [reviewBeingEdited, setReviewBeingEdited] = useState<{ reviewText: string; rating: number } | null>(null);
 
   const fields = ["title", "author"] as const;
   const details = [
@@ -431,6 +463,70 @@ const CategoryView: FC = () => {
     loadBooks();
   }, [fetchAllShelves, initialLoadDone, isbn]);
 
+  useEffect(() => {
+    if (!selectedBook) return;
+    try {
+      const stored = localStorage.getItem(`reviews-${selectedBook.isbn}`);
+      if (stored) setReviews(JSON.parse(stored));
+      else setReviews([]);
+    } catch (err) {
+      console.error("Failed to load reviews from localStorage", err);
+      setReviews([]);
+    }
+  }, [selectedBook]);
+
+  const handleReviewAdded = (review: { reviewText: string; rating: number }) => {
+    setReviews((prev) => {
+      const newReviews = [...prev, review];
+      if (selectedBook?.isbn) {
+        try {
+          localStorage.setItem(`reviews-${selectedBook.isbn}`, JSON.stringify(newReviews));
+        } catch (err) {
+          console.error("Failed to save reviews to localStorage", err);
+        }
+      }
+      return newReviews;
+    });
+    setShowAddReview(false);
+  };
+
+  const handleEditReview = (updatedReview: { reviewText: string; rating: number }) => {
+    setReviews([updatedReview]);
+    if (selectedBook?.isbn) {
+      localStorage.setItem(`reviews-${selectedBook.isbn}`, JSON.stringify([updatedReview]));
+    }
+    setShowAddReview(false);
+  };
+
+  const openEditReview = () => {
+    if (reviews.length > 0) setReviewBeingEdited(reviews[0]);
+    setShowAddReview(true);
+  };
+
+  const handleReviewDeleted = () => {
+    setReviews([]);
+    if (selectedBook?.isbn) {
+      localStorage.removeItem(`reviews-${selectedBook.isbn}`);
+    }
+  };
+
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 1500); 
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  const renderStars = (rating: number) =>
+    Array.from({ length: 5 }, (_, i) => {
+      if (rating >= i + 1)
+        return <FullStarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
+      if (rating >= i + 0.5)
+        return <HalfStarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
+      return <StarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
+    });
+  
   const handleMoveShelf = async (isbn: string, shelf: string) => {
     if (!moveShelf) return;
 
@@ -508,7 +604,7 @@ const CategoryView: FC = () => {
                       isEditing={isEditing}
                       genre={selectedBook.genre}
                       onBookmark={() => setBookmarked(!bookmarked)}
-                      onEditToggle={() => setIsEditing(!isEditing)}
+                      onEditToggle={openEditReview}
                       bookmarkOpen={bookmarkOpen}
                       setBookmarkOpen={setBookmarkOpen}
                       bookIdx={0} 
@@ -518,33 +614,47 @@ const CategoryView: FC = () => {
                     />
 
                     <Box style={styles.bottomContent}>
-                      <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
-                        <Text style={styles.detailLabel}>Description</Text>
-                        <Box
-                          ref={refs.summary}
-                          contentEditable={isEditing}
-                          suppressContentEditableWarning
-                          onInput={(e) => handleChange("summary", e.currentTarget.textContent || "")}
-                          style={styles.detailValue}
-                        >
-                          {selectedBook.summary}
+                      <Box style={styles.bottomTop}>
+                        <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
+                          <Text style={styles.detailLabel}>Description</Text>
+                          <Box
+                            ref={refs.summary}
+                            contentEditable={isEditing}
+                            suppressContentEditableWarning
+                            onInput={(e) => handleChange("summary", e.currentTarget.textContent || "")}
+                            style={styles.detailValue}
+                          >
+                            {selectedBook.summary}
+                          </Box>
+                        </Box>
+
+                        <Box style={styles.detailsWrapper}>
+                          {details.map((detail) => (
+                            <Box key={detail.key} style={styles.detailsBox}>
+                              <Text style={styles.detailLabel}>{detail.label}</Text>
+                              <Box
+                                ref={refs[detail.key]}
+                                contentEditable={isEditing}
+                                suppressContentEditableWarning
+                                onInput={(e) =>
+                                  handleChange(detail.key as keyof BookDisplay, e.currentTarget.textContent || "")
+                                }
+                                style={styles.detailValue}
+                              >
+                                {selectedBook[detail.key as keyof BookDisplay]}
+                              </Box>
+                            </Box>
+                          ))}
                         </Box>
                       </Box>
 
-                      <Box style={styles.detailsWrapper}>
-                        {details.map((detail) => (
-                          <Box key={detail.key} style={styles.detailsBox}>
-                            <Text style={styles.detailLabel}>{detail.label}</Text>
-                            <Box
-                              ref={refs[detail.key]}
-                              contentEditable={isEditing}
-                              suppressContentEditableWarning
-                              onInput={(e) =>
-                                handleChange(detail.key as keyof BookDisplay, e.currentTarget.textContent || "")
-                              }
-                              style={styles.detailValue}
-                            >
-                              {selectedBook[detail.key as keyof BookDisplay]}
+                      <Box style={styles.bottomBottom}>
+                        {reviews.map((review, idx) => (
+                          <Box key={idx} style={styles.detailsBox}>
+                            <Text style={styles.detailLabel}>Review</Text>
+                            <Box style={styles.detailStarred}>
+                              <Text style={styles.detailValue}>{review.reviewText}</Text>
+                              <Box style={styles.starBox}>{renderStars(review.rating)}</Box>
                             </Box>
                           </Box>
                         ))}
@@ -553,6 +663,35 @@ const CategoryView: FC = () => {
                   </Box>
                 </Box>
               </>
+            )}
+
+            {selectedBook && selectedBook.isbn && showAddReview && (
+              reviewBeingEdited ? (
+                <EditReview
+                  opened={showAddReview}
+                  onClose={() => { setShowAddReview(false); setReviewBeingEdited(null); }}
+                  bookId={selectedBook.isbn}
+                  reviewData={reviewBeingEdited}
+                  onReviewAdded={(r) => {
+                    handleEditReview(r);
+                    setShowAddReview(false);
+                    setReviewBeingEdited(null);
+                  }}
+                  onReviewDeleted={handleReviewDeleted} 
+                  setToastMessage={setToastMessage}
+                  setToastStatus={setToastStatus}
+                />
+              ) : (
+                <AddReview
+                  opened={showAddReview}
+                  onClose={() => setShowAddReview(false)}
+                  bookId={selectedBook.isbn}
+                  onReviewAdded={(r) => {
+                    handleReviewAdded(r);
+                    setShowAddReview(false);
+                  }}
+                />
+              )
             )}
 
             {toastMessage && <Toast message={toastMessage} status={toastStatus} />}

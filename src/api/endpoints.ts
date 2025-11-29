@@ -17,4 +17,9 @@ export const ENDPOINTS = {
   SHELVES: {
     GET_ALL: "shelves",
   },
+  REVIEWS: {
+    ADD: "reviews",
+    UPDATE: (bookId: string) => `reviews/${bookId}`,
+    DELETE: (bookId: string) => `reviews/${bookId}`,
+  },
 };

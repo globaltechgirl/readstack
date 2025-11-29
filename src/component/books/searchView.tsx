@@ -265,9 +265,9 @@ const BookActions: FC<BookActionsProps> = ({
         <Box
           style={styles.continueBox}
           onClick={(e) => {
-            e.preventDefault();   // STOP default navigation
-            e.stopPropagation();  // STOP bubbling
-            window.open(googleLink, "_blank"); // open in new tab
+            e.preventDefault();  
+            e.stopPropagation(); 
+            window.open(googleLink, "_blank"); 
           }}
         >
           <Text style={styles.continueText}>View on Google</Text>
@@ -279,8 +279,8 @@ const BookActions: FC<BookActionsProps> = ({
           <Box
             style={styles.iconBox}
             onClick={async (e) => {
-              e.preventDefault();   // prevent any default action
-              e.stopPropagation();  // prevent parent clicks
+              e.preventDefault();   
+              e.stopPropagation(); 
               const success = await handleAddToShelf();
               if (success) onBookmark();
             }}

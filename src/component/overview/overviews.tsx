@@ -65,7 +65,7 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     gap: 12,
-    paddingTop: 20,
+    paddingTop: 12,
   },
   topInfo: {
     display: "flex",
@@ -192,114 +192,6 @@ const styles: Record<string, CSSProperties> = {
     justifyContent: "space-between",
     alignItems: "center",
   },
-  scheduleMain: {
-    padding: 3,
-    backgroundColor: "var(--light-100)",
-    border: "0.5px solid var(--border-200)",
-    borderRadius: 8,
-  },
-  scheduleWrapper: {
-    width: "100%",
-    padding: 20,
-    backgroundColor: "var(--light-200)",
-    borderRadius: 6,
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  scheduleHeading: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  scheduleHeader: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: "var(--dark-100)",
-  },
-  scheduleArrow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 5,
-  },
-  arrowButton: {
-    cursor: "pointer",
-    width: 12,
-  },
-  dayBox: {
-    padding: "4px 6px",
-    borderRadius: 6,
-    cursor: "pointer",
-    textAlign: "center",
-    minWidth: 30,
-  },
-  dayRow: {
-    display: "flex",
-    gap: 5,
-    overflowX: "auto",
-    width: "100%",
-    justifyContent: "space-between"
-  },
-  dayText: {
-    fontSize: 9.5,
-    fontWeight: 500,
-    color: "var(--dark-200)",
-  },
-  dateText: {
-    fontSize: 10,
-    fontWeight: 500,
-    color: "var(--dark-100)",
-  },
-  activeDay: {
-    backgroundColor: "var(--light-100)",
-    border: "0.5px solid var(--border-200)",
-  },
-  readingList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 30,
-    marginTop: 10,
-    position: "relative",
-  },
-  readingRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    position: "relative",
-  },
-  bookBox: {
-    width: 35,
-    height: 50,
-    objectFit: "cover",
-    borderRadius: 5,
-    padding: 2,
-    border: "0.5px solid var(--border-200)",
-    backgroundColor: "var(--light-100)",
-  },
-  readingBookRow: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-  },
-  bookName: {
-    fontSize: 10,
-    fontWeight: 500,
-    color: "var(--dark-100)",
-  },
-  bookComment: {
-    fontSize: 9.5,
-    fontWeight: 500,
-    color: "var(--dark-200)",
-    fontFamily: "'Pangolin', cursive",
-  },
-  connector: {
-    position: "absolute",
-    width: 1,
-    borderLeft: "1px dashed var(--border-200)",
-    left: 17,
-    top: 50,
-    zIndex: 0,
-  },
   centerText: {
     fontSize: 10,
     fontWeight: 550,
@@ -414,6 +306,13 @@ const Overviews: FC = () => {
       return <StarIcon key={i} width={11} height={11} color="var(--dark-200)" />;
     });
 
+  const trimChars = (text: string | undefined, maxChars: number) => {
+    if (!text || text.trim() === "") return "N/A";
+    return text.length > maxChars ? text.slice(0, maxChars) + "..." : text;
+  };
+
+  const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
   return (
     <Box style={styles.overviewsMain}>
       <Box style={styles.overviewsWrapper}>
@@ -432,9 +331,9 @@ const Overviews: FC = () => {
                         <Text style={styles.bookAuthor}>{book.author}</Text>
                       </Box>
                       <Box style={styles.bottomInfo}>
-                        <Text style={styles.bookSummary}>{book.description}</Text>
+                        <Text style={styles.bookSummary}>{trimChars(book.description, 400)}</Text>
                         <Box style={styles.continueBox}>
-                          <Text style={styles.continueText}>{book.genre}</Text>
+                          <Text style={styles.continueText}>{capitalize(book.genre)}</Text>
                         </Box>
                       </Box>
                     </Box>

@@ -11,7 +11,7 @@ const styles: Record<string, CSSProperties> = {
     position: "fixed",
     bottom: 20,
     right: 25,
-    width: 200,
+    width: 220,
     cursor: "pointer",
     zIndex: 9999,
   },

@@ -412,7 +412,12 @@ const Wishlist: FC = () => {
                     <Text style={styles.bookTitle}>{book.title}</Text>
                     <Text style={styles.bookAuthor}>{book.author}</Text>
 
-                    <Box style={styles.startContainer}>
+                    <Box
+                      style={styles.startContainer}
+                      onClick={() => {
+                        if (book.isbn) handleMoveShelf(book.isbn, "CURRENTLY_READING");
+                      }}
+                    >
                       <Text style={styles.startText}>Start reading</Text>
                     </Box>
                   </Box>
