@@ -4,6 +4,7 @@ export interface Link {
 }
 
 export interface Shelves {
+  googleLink: string | undefined;
   userBook: any;
   book: any;
   id: string | number | null;

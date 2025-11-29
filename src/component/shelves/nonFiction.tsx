@@ -142,11 +142,15 @@ const styles: Record<string, CSSProperties> = {
     color: "var(--dark-200)",
     fontSize: 8.5,
     fontWeight: 550,
-    padding: "2px 35px 2px 40px",
+    padding: "2px 0", 
+    width: 110,        
     textAlign: "center",
     textTransform: "capitalize",
     transform: "rotate(45deg)",
     pointerEvents: "none",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
   bookTexts: {
     display: "flex",
@@ -298,7 +302,10 @@ const NonFiction: FC = () => {
   const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
 
-
+  const trimChars = (text: string | undefined, maxChars: number) => {
+    if (!text || text.trim() === "") return "N/A";
+    return text.length > maxChars ? text.slice(0, maxChars) + "..." : text;
+  };
 
   return (
     <Stack gap="10" style={styles.nonfictionBody}>
@@ -326,7 +333,7 @@ const NonFiction: FC = () => {
                       <Image src={book.image} alt={book.title} style={styles.bookImage} />
                     </Box>
 
-                    <Box style={styles.genreRibbon}>{book.genre}</Box>
+                    <Box style={styles.genreRibbon}>{trimChars(book.genre, 8)}</Box>
                   </Box>
 
                   <Box style={styles.bookTexts}>

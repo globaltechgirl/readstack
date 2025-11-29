@@ -17,8 +17,8 @@ export const ROUTES = {
     ROOT: "/books",
     ALL: "/books/all",
     RECENT: "/books/recent",
-    COMPLETED: "/books/completed",
     WISHLIST: "/books/wishlist",
+    COMPLETED: "/books/completed",
     VIEW_BOOK_DETAILS: "/books/:id",
   },
 
@@ -54,10 +54,10 @@ export const NavLinks = [
     link: ROUTES.BOOKS.ROOT,
     icon: BooksIcon,
     subNav: [
-      { label: "View All", link: ROUTES.BOOKS.ALL },
+      { label: "All", link: ROUTES.BOOKS.ALL },
       { label: "Recent", link: ROUTES.BOOKS.RECENT },
-      { label: "Completed", link: ROUTES.BOOKS.COMPLETED },
       { label: "Wishlist", link: ROUTES.BOOKS.WISHLIST },
+      { label: "Completed", link: ROUTES.BOOKS.COMPLETED },
     ],
   },
   {

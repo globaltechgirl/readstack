@@ -9,6 +9,7 @@ import BookmarkFill from "@/assets/icons/bookmarkFill";
 import BookmarkFull from "@/assets/icons/bookmarkFull";
 import useShelves from "@/hooks/use-shelves";
 import { ApiBook, ShelvesResponse } from "@/types/shelves";
+import Toast from "../layout/toast";
 
 const styles: Record<string, CSSProperties> = {
   viewBody: {
@@ -167,6 +168,33 @@ const styles: Record<string, CSSProperties> = {
     width: 11,
     height: 11,
   },
+  bookmarkMain: {
+    position: "absolute",
+    top: 75,
+    right: 40,
+    width: "fit-content",
+    padding: 2,
+    backgroundColor: "var(--light-100)",
+    border: "0.5px solid var(--border-200)",
+    borderRadius: 6,
+    zIndex: 10,
+  },
+  bookmarkDropdown: {
+    padding: 2,
+    borderRadius: 5,
+    backgroundColor: "var(--light-200)",
+    overflow: "hidden",
+  },
+  bookmarkOption: {
+    padding: "4px 12px",
+    cursor: "pointer",
+    fontSize: 9,
+    fontWeight: 550,
+    color: "var(--dark-200)",
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "flex-start"
+  },
   actionHr: {
     display: "flex",
     alignItems: "center",
@@ -217,48 +245,6 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-const BookActions: FC<{
-  bookmarked: boolean;
-  isEditing: boolean;
-  genre?: string;
-  onBookmark: () => void;
-  onEditToggle: () => void;
-}> = ({ bookmarked, isEditing, onBookmark, genre, onEditToggle }) => (
-  <Box style={styles.actionWrapper}>
-    <Box style={styles.actionRow}>
-      <Box style={styles.continueBox}>
-        <Text style={styles.continueText}>{genre || "Unknown Genre"}</Text>
-      </Box>
-
-      <Box style={styles.iconWrappers}>
-        <Box style={styles.iconWrapper}>
-          <Box style={styles.iconBox} onClick={onEditToggle}>
-            {isEditing ? (
-              <SaveIcon style={styles.iconInner} />
-            ) : (
-              <EditIcon style={styles.iconInner} />
-            )}
-          </Box>
-        </Box>
-
-        <Box style={styles.iconWrapper}>
-          <Box style={styles.iconBox} onClick={onBookmark}>
-            {bookmarked ? (
-              <BookmarkFull style={styles.iconInner} />
-            ) : (
-              <BookmarkFill style={styles.iconInner} />
-            )}
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-
-    <Box style={styles.actionHr}>
-      <hr style={styles.hrLine} />
-    </Box>
-  </Box>
-);
-
 interface BookDisplay {
   isbn: string;
   id?: string | number | null;
@@ -275,17 +261,102 @@ interface BookDisplay {
   progress?: number;
 }
 
+interface BookActionsProps {
+  bookmarked: boolean;
+  isEditing: boolean;
+  genre?: string;
+  onBookmark: () => void;
+  onEditToggle: () => void;
+  bookmarkOpen: number | null;
+  setBookmarkOpen: (idx: number | null) => void;
+  bookIdx: number;
+  shelfOptions: { label: string; shelf: string }[];
+  handleMoveShelf: (isbn: string, shelf: string) => void;
+  bookIsbn: string;
+}
+
+const BookActions: FC<BookActionsProps> = ({
+  bookmarked,
+  isEditing,
+  genre,
+  onBookmark,
+  onEditToggle,
+  bookmarkOpen,
+  setBookmarkOpen,
+  bookIdx,
+  shelfOptions,
+  handleMoveShelf,
+  bookIsbn,
+}) => (
+  <Box style={styles.actionWrapper}>
+    <Box style={styles.actionRow}>
+      <Box style={styles.continueBox}>
+        <Text style={styles.continueText}>{genre || "Unknown Genre"}</Text>
+      </Box>
+
+      <Box style={styles.iconWrappers}>
+        <Box style={styles.iconWrapper}>
+          <Box style={styles.iconBox} onClick={onEditToggle}>
+            {isEditing ? <SaveIcon style={styles.iconInner} /> : <EditIcon style={styles.iconInner} />}
+          </Box>
+        </Box>
+
+        <Box style={styles.iconWrapper}>
+          <Box style={styles.iconBox} onClick={onBookmark}>
+            <Box
+              onClick={(e) => {
+                e.stopPropagation();
+                setBookmarkOpen(bookmarkOpen === bookIdx ? null : bookIdx);
+              }}
+            >
+              {bookmarked ? (
+                <BookmarkFull style={styles.iconInner} />
+              ) : (
+                <BookmarkFill style={styles.iconInner} />
+              )}
+
+              {bookmarkOpen === bookIdx && (
+                <Box style={styles.bookmarkMain}>
+                  <Box className="bookmark-dropdown" style={styles.bookmarkDropdown}>
+                    {shelfOptions.map((opt) => (
+                      <Box
+                        key={opt.label}
+                        style={styles.bookmarkOption}
+                        className="hover-light"
+                        onClick={() => handleMoveShelf(bookIsbn, opt.shelf)}
+                      >
+                        {opt.label}
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+
+    <Box style={styles.actionHr}>
+      <hr style={styles.hrLine} />
+    </Box>
+  </Box>
+);
+
 const CategoryView: FC = () => {
-  const { fetchAllShelves } = useShelves();
+  const { fetchAllShelves, moveShelf } = useShelves();
   const { isbn } = useParams<{ isbn: string }>();
   const [, setAllBooks] = useState<BookDisplay[]>([]);
   const [selectedBook, setSelectedBook] = useState<BookDisplay | null>(null);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarkOpen, setBookmarkOpen] = useState<number | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastStatus, setToastStatus] = useState<"success" | "error">("success");
   const [isEditing, setIsEditing] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
 
-  const fields = ["title", "author", ] as const;
+  const fields = ["title", "author"] as const;
   const details = [
     { label: "Publication", key: "publication" },
     { label: "Language", key: "language" },
@@ -294,7 +365,7 @@ const CategoryView: FC = () => {
   ];
 
   const refs: Record<string, React.RefObject<HTMLDivElement | null>> = Object.fromEntries(
-    [...fields, "summary", ...details.map(d => d.key)].map(key => [key, useRef<HTMLDivElement>(null)])
+    [...fields, "summary", ...details.map((d) => d.key)].map((key) => [key, useRef<HTMLDivElement>(null)])
   );
 
   const handleChange = (key: keyof BookDisplay, value: string) => {
@@ -346,7 +417,7 @@ const CategoryView: FC = () => {
         }));
 
         setAllBooks(formatted);
-        const bookFromUrl = formatted.find(b => b.isbn === isbn);
+        const bookFromUrl = formatted.find((b) => b.isbn === isbn);
         setSelectedBook(bookFromUrl ?? formatted[0] ?? null);
         setInitialLoadDone(true);
       } catch (err) {
@@ -358,7 +429,42 @@ const CategoryView: FC = () => {
     };
 
     loadBooks();
-  }, [fetchAllShelves, initialLoadDone]);
+  }, [fetchAllShelves, initialLoadDone, isbn]);
+
+  const handleMoveShelf = async (isbn: string, shelf: string) => {
+    if (!moveShelf) return;
+
+    try {
+      const res = await moveShelf(isbn, shelf);
+
+      if (res?.message) {
+        setToastMessage(res.message);
+        setToastStatus("success");
+
+        setBookmarked(true);
+
+        if (res.newShelf && res.newShelf !== "WANT_TO_READ") {
+          setAllBooks((prev) => prev.filter((b) => b.isbn !== isbn));
+        }
+      } else {
+        setToastMessage("Failed to move book");
+        setToastStatus("error");
+      }
+    } catch (err) {
+      console.error(err);
+      setToastMessage("Error moving book");
+      setToastStatus("error");
+    } finally {
+      setBookmarkOpen(null);
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
+  const shelfOptions = [
+    { label: "Wishlist", shelf: "WANT_TO_READ" },
+    { label: "Recent", shelf: "CURRENTLY_READING" },
+    { label: "Completed", shelf: "READ" },
+  ];
 
   return (
     <Stack gap="10" style={styles.viewBody}>
@@ -380,13 +486,13 @@ const CategoryView: FC = () => {
                 <Box style={styles.topSection}>
                   <Image src={selectedBook.image} alt={selectedBook.title} style={styles.bookImage} />
                   <Box style={styles.bookInfo}>
-                    {fields.map(field => (
+                    {fields.map((field) => (
                       <Box
                         key={field}
                         ref={refs[field]}
                         contentEditable={isEditing}
                         suppressContentEditableWarning
-                        onInput={e => handleChange(field, e.currentTarget.textContent || "")}
+                        onInput={(e) => handleChange(field, e.currentTarget.textContent || "")}
                         style={styles[`book${field.charAt(0).toUpperCase() + field.slice(1)}`]}
                       >
                         {selectedBook[field]}
@@ -403,6 +509,12 @@ const CategoryView: FC = () => {
                       genre={selectedBook.genre}
                       onBookmark={() => setBookmarked(!bookmarked)}
                       onEditToggle={() => setIsEditing(!isEditing)}
+                      bookmarkOpen={bookmarkOpen}
+                      setBookmarkOpen={setBookmarkOpen}
+                      bookIdx={0} 
+                      shelfOptions={shelfOptions}
+                      handleMoveShelf={handleMoveShelf}
+                      bookIsbn={selectedBook.isbn}
                     />
 
                     <Box style={styles.bottomContent}>
@@ -412,7 +524,7 @@ const CategoryView: FC = () => {
                           ref={refs.summary}
                           contentEditable={isEditing}
                           suppressContentEditableWarning
-                          onInput={e => handleChange("summary", e.currentTarget.textContent || "")}
+                          onInput={(e) => handleChange("summary", e.currentTarget.textContent || "")}
                           style={styles.detailValue}
                         >
                           {selectedBook.summary}
@@ -420,14 +532,16 @@ const CategoryView: FC = () => {
                       </Box>
 
                       <Box style={styles.detailsWrapper}>
-                        {details.map(detail => (
+                        {details.map((detail) => (
                           <Box key={detail.key} style={styles.detailsBox}>
                             <Text style={styles.detailLabel}>{detail.label}</Text>
                             <Box
                               ref={refs[detail.key]}
                               contentEditable={isEditing}
                               suppressContentEditableWarning
-                              onInput={e => handleChange(detail.key as keyof BookDisplay, e.currentTarget.textContent || "")}
+                              onInput={(e) =>
+                                handleChange(detail.key as keyof BookDisplay, e.currentTarget.textContent || "")
+                              }
                               style={styles.detailValue}
                             >
                               {selectedBook[detail.key as keyof BookDisplay]}
@@ -440,7 +554,8 @@ const CategoryView: FC = () => {
                 </Box>
               </>
             )}
-          
+
+            {toastMessage && <Toast message={toastMessage} status={toastStatus} />}
           </Box>
         </Box>
       </Box>

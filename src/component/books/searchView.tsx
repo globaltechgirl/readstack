@@ -8,8 +8,7 @@ import { Link, Shelves } from "@/types/shelves";
 
 import BookmarkFill from "@/assets/icons/bookmarkFill";
 import BookmarkFull from "@/assets/icons/bookmarkFull";
-import HeartFill from "@/assets/icons/heartFill";
-import HeartFull from "@/assets/icons/heartFull";
+import Toast from "../layout/toast";
 
 const styles: Record<string, CSSProperties> = {
   viewBody: {
@@ -168,6 +167,33 @@ const styles: Record<string, CSSProperties> = {
     width: 11,
     height: 11,
   },
+  bookmarkMain: {
+    position: "absolute",
+    top: 75,
+    right: 40,
+    width: "fit-content",
+    padding: 2,
+    backgroundColor: "var(--light-100)",
+    border: "0.5px solid var(--border-200)",
+    borderRadius: 6,
+    zIndex: 10,
+  },
+  bookmarkDropdown: {
+    padding: 2,
+    borderRadius: 5,
+    backgroundColor: "var(--light-200)",
+    overflow: "hidden",
+  },
+  bookmarkOption: {
+    padding: "4px 12px",
+    cursor: "pointer",
+    fontSize: 9,
+    fontWeight: 550,
+    color: "var(--dark-200)",
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "flex-start"
+  },
   actionHr: {
     display: "flex",
     alignItems: "center",
@@ -218,29 +244,52 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-const BookActions: FC<{
+interface BookActionsProps {
   bookmarked: boolean;
-  liked: boolean;
+  genre?: string;
   googleLink?: string;
   onBookmark: () => void;
-  onLike: () => void;
-}> = ({ bookmarked, liked, googleLink, onBookmark, onLike }) => (
+  bookIsbn: string;
+  handleAddToShelf: () => Promise<boolean>; 
+}
+
+const BookActions: FC<BookActionsProps> = ({
+  bookmarked,
+  onBookmark,
+  googleLink,
+  handleAddToShelf,
+}) => (
   <Box style={styles.actionWrapper}>
     <Box style={styles.actionRow}>
       {googleLink && (
-        <Anchor href={googleLink} target="_blank" style={styles.continueBox}>
+        <Box
+          style={styles.continueBox}
+          onClick={(e) => {
+            e.preventDefault();   // STOP default navigation
+            e.stopPropagation();  // STOP bubbling
+            window.open(googleLink, "_blank"); // open in new tab
+          }}
+        >
           <Text style={styles.continueText}>View on Google</Text>
-        </Anchor>
+        </Box>
       )}
+
       <Box style={styles.iconWrappers}>
         <Box style={styles.iconWrapper}>
-          <Box style={styles.iconBox} onClick={onBookmark}>
-            {bookmarked ? <BookmarkFull style={styles.iconInner} /> : <BookmarkFill style={styles.iconInner} />}
-          </Box>
-        </Box>
-        <Box style={styles.iconWrapper}>
-          <Box style={styles.iconBox} onClick={onLike}>
-            {liked ? <HeartFull style={styles.iconInner} /> : <HeartFill style={styles.iconInner} />}
+          <Box
+            style={styles.iconBox}
+            onClick={async (e) => {
+              e.preventDefault();   // prevent any default action
+              e.stopPropagation();  // prevent parent clicks
+              const success = await handleAddToShelf();
+              if (success) onBookmark();
+            }}
+          >
+            {bookmarked ? (
+              <BookmarkFull style={styles.iconInner} />
+            ) : (
+              <BookmarkFill style={styles.iconInner} />
+            )}
           </Box>
         </Box>
       </Box>
@@ -259,130 +308,203 @@ const formatDate = (dateString?: string) => {
   }
 };
 
-const View: FC = () => {
+const SearchView: FC = () => {
   const location = useLocation();
   const { bookId } = useParams<{ bookId: string }>();
-  const { fetchBookDetails, loading } = useShelves();
+  const { fetchBookDetails, addToShelf } = useShelves();
 
   const [book, setBook] = useState<Shelves | null>(null);
+  const [isFetchingBook, setIsFetchingBook] = useState(true);
+  const [addShelfStatus, setAddShelfStatus] = useState<"idle" | "adding" | "added" | "error">("idle");
+  const [addShelfMessage, setAddShelfMessage] = useState<string | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
-  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  const fetchBook = async () => {
-    try {
-      let data: Shelves | null = null;
+    const fetchBook = async () => {
+      setIsFetchingBook(true);
+      try {
+        let data: Shelves | null = null;
 
-      if (bookId) data = await fetchBookDetails(bookId);
+        if (bookId) {
+          try {
+            data = await fetchBookDetails(bookId);
+          } catch (err: any) {
+            console.error("Fetch error:", err);
 
-      if (!data && location.state) {
-        const fallback = location.state as Shelves;
-        if (fallback?.title) data = fallback;
+            if (err?.response?.status === 404) {
+              if (isMounted) setBook(null);
+              return;
+            }
+          }
+        }
+
+        if (!data && location.state) {
+          const fallback = location.state as Shelves;
+          if (fallback?.title) data = fallback;
+        }
+
+        if (isMounted) setBook(data);
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      } finally {
+        if (isMounted) setIsFetchingBook(false);
       }
-
-      if (isMounted && data) setBook(data);
-    } catch (err) {
-      console.error("Failed to fetch book:", err);
-    }
-  };
+    };
 
     fetchBook();
 
     return () => {
       isMounted = false;
     };
-  }, [bookId]);
+  }, [bookId, location.state]);
 
-  const googleLink = book?.readLinks?.find(link => link.platform.toLowerCase().includes("google"))?.url;
+  const googleLink = book?.readLinks?.find((link) =>
+    link.platform.toLowerCase().includes("google")
+  )?.url;
 
   const firstLinks: Link[] = [];
   if (book?.readLinks) {
-    const otherLinks = book.readLinks.filter(link => !link.platform.toLowerCase().includes("google"));
+    const otherLinks = book.readLinks.filter(
+      (link) => !link.platform.toLowerCase().includes("google")
+    );
     firstLinks.push(...otherLinks.slice(0, 3));
   }
+
+  const handleAddToShelf = async (): Promise<boolean> => {
+    if (!book?.bookId) {
+      setAddShelfStatus("error");
+      setAddShelfMessage("Book ID not found");
+      setTimeout(() => setAddShelfMessage(null), 3000);
+      return false;
+    }
+
+    setAddShelfStatus("adding");
+    setAddShelfMessage(null);
+
+    try {
+      const res = await addToShelf(book.bookId);
+      if (res?.message) {
+        setAddShelfStatus("added");
+        setAddShelfMessage("Book added successfully");
+        setBookmarked(true);
+        setTimeout(() => setAddShelfMessage(null), 3000);
+        return true;
+      } else {
+        setAddShelfStatus("error");
+        setAddShelfMessage("Failed to add to shelf");
+        setTimeout(() => setAddShelfMessage(null), 3000);
+        return false;
+      }
+    } catch (err: any) {
+      console.error("addToShelf error:", err);
+      setAddShelfStatus("error");
+      setAddShelfMessage(err?.message ?? "Failed to add to shelf");
+      setTimeout(() => setAddShelfMessage(null), 3000);
+      return false;
+    }
+  };
 
   return (
     <Stack gap="10" style={styles.viewBody}>
       <Info query={""} setQuery={() => {}} />
+
       <Box style={styles.viewMain}>
         <Box style={styles.viewWrapper}>
           <Box style={styles.viewSection}>
-            {loading ? (
+            {isFetchingBook ? (
               <Center style={{ width: "100%", padding: 50 }}>
                 <Text style={styles.centerText}>Loading book details...</Text>
               </Center>
-            ) : !book ? (
+            ) : !book && !location.state ? (
               <Center style={{ width: "100%", padding: 50 }}>
                 <Text style={styles.centerText}>No book details available.</Text>
               </Center>
             ) : (
-              <>
-                <Box style={styles.topSection}>
-                  <Image
-                    src={book.coverImageUrl || "/placeholder-book.png"}
-                    alt={book.title}
-                    style={styles.bookImage}
-                  />
-                  <Box style={styles.bookInfo}>
-                    <Text style={styles.bookTitle}>{book.title || "-"}</Text>
-                    <Text style={styles.bookAuthor}>
-                      {Array.isArray(book.authors) ? book.authors.join(", ") : book.authors || "-"}
-                    </Text>
-                  </Box>
-                </Box>
-
-                <Box style={styles.bottomSection}>
-                  <Box style={styles.bottomWrapper}>
-                    <BookActions
-                      bookmarked={bookmarked}
-                      liked={liked}
-                      googleLink={googleLink}
-                      onBookmark={() => setBookmarked(!bookmarked)}
-                      onLike={() => setLiked(!liked)}
+              book && (
+                <>
+                  <Box style={styles.topSection}>
+                    <Image
+                      src={book.coverImageUrl || "/placeholder-book.png"}
+                      alt={book.title}
+                      style={styles.bookImage}
                     />
+                    <Box style={styles.bookInfo}>
+                      <Text style={styles.bookTitle}>{book.title || "-"}</Text>
+                      <Text style={styles.bookAuthor}>
+                        {Array.isArray(book.authors)
+                          ? book.authors.join(", ")
+                          : book.authors || "-"}
+                      </Text>
+                    </Box>
+                  </Box>
 
-                    <Box style={styles.bottomContent}>
-                      <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
-                        <Text style={styles.detailLabel}>Description</Text>
-                        <Box
-                          style={styles.detailValue}
-                          dangerouslySetInnerHTML={{ __html: book.description || "-" }}
-                        />
-                      </Box>
+                  <Box style={styles.bottomSection}>
+                    <Box style={styles.bottomWrapper}>
+                      <BookActions
+                        bookmarked={bookmarked}
+                        genre={book.categories?.[0]}
+                        googleLink={googleLink}
+                        onBookmark={() => setBookmarked(true)}
+                        handleAddToShelf={handleAddToShelf}
+                        bookIsbn={book?.isbn || ""}
+                      />
 
-                      <Box style={styles.detailsWrapper}>
-                        <Box style={styles.detailsBox}>
-                          <Text style={styles.detailLabel}>Genres</Text>
-                          <Text style={styles.detailValue}>{book.categories?.length ? book.categories.join(", ") : "-"}</Text>
+                      <Box style={styles.bottomContent}>
+                        <Box style={{ ...styles.descriptionBox, ...styles.detailsBox }}>
+                          <Text style={styles.detailLabel}>Description</Text>
+                          <Box
+                            style={styles.detailValue}
+                            dangerouslySetInnerHTML={{ __html: book.description || "-" }}
+                          />
                         </Box>
 
-                        <Box style={styles.detailsBox}>
-                          <Text style={styles.detailLabel}>Publication</Text>
-                          <Text style={styles.detailValue}>{formatDate(book.publishedDate || "-")}</Text>
-                        </Box>
-
-                        <Box style={styles.detailsBox}>
-                          <Text style={styles.detailLabel}>Format</Text>
-                          <Text style={styles.detailValue}>{book.pageCount || "-"} Pages</Text>
-                        </Box>
-
-                        {firstLinks.length > 0 && (
+                        <Box style={styles.detailsWrapper}>
                           <Box style={styles.detailsBox}>
-                            <Text style={styles.detailLabel}>Other Links</Text>
-                            {firstLinks.map((link: Link, idx: number) => (
-                              <Anchor key={idx} href={link.url} target="_blank" style={{ ...styles.detailValue, textDecoration: "none" }}>
-                                {link.platform || link.url}
-                              </Anchor>
-                            ))}
+                            <Text style={styles.detailLabel}>Genres</Text>
+                            <Text style={styles.detailValue}>
+                              {book.categories?.length ? book.categories.join(", ") : "-"}
+                            </Text>
                           </Box>
-                        )}
+
+                          <Box style={styles.detailsBox}>
+                            <Text style={styles.detailLabel}>Publication</Text>
+                            <Text style={styles.detailValue}>
+                              {formatDate(book.publishedDate || "-")}
+                            </Text>
+                          </Box>
+
+                          <Box style={styles.detailsBox}>
+                            <Text style={styles.detailLabel}>Format</Text>
+                            <Text style={styles.detailValue}>{book.pageCount || "-"} Pages</Text>
+                          </Box>
+
+                          {firstLinks.length > 0 && (
+                            <Box style={styles.detailsBox}>
+                              <Text style={styles.detailLabel}>Other Links</Text>
+                              {firstLinks.map((link: Link, idx: number) => (
+                                <Anchor
+                                  key={idx}
+                                  href={link.url}
+                                  target="_blank"
+                                  style={{ ...styles.detailValue, textDecoration: "none" }}
+                                >
+                                  {link.platform || link.url}
+                                </Anchor>
+                              ))}
+                            </Box>
+                          )}
+                        </Box>
                       </Box>
                     </Box>
                   </Box>
-                </Box>
-              </>
+                </>
+              )
+            )}
+
+            {addShelfMessage && (
+              <Toast message={addShelfMessage} status={addShelfStatus === "added" ? "success" : "error"}/>
             )}
           </Box>
         </Box>
@@ -391,4 +513,5 @@ const View: FC = () => {
   );
 };
 
-export default View;
+
+export default SearchView;

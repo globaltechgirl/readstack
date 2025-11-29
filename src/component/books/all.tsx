@@ -114,11 +114,15 @@ const styles: Record<string, CSSProperties> = {
     color: "var(--dark-200)",
     fontSize: 8.5,
     fontWeight: 550,
-    padding: "2px 35px 2px 40px",
+    padding: "2px 0", 
+    width: 110,        
     textAlign: "center",
     textTransform: "capitalize",
     transform: "rotate(45deg)",
     pointerEvents: "none",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
   bookTexts: {
     display: "flex",
@@ -241,6 +245,11 @@ const AllBooks: FC = () => {
     return () => clearTimeout(handler);
   }, [query, searchForBooks]);
 
+  const trimChars = (text: string | undefined, maxChars: number) => {
+    if (!text || text.trim() === "") return "N/A";
+    return text.length > maxChars ? text.slice(0, maxChars) + "..." : text;
+  };
+
   return (
     <Stack gap="10" style={styles.allBody}>
       <Info query={query} setQuery={setQuery} />
@@ -277,7 +286,7 @@ const AllBooks: FC = () => {
                         }}
                       />
                     </Box>
-                    <Box style={styles.genreRibbon}>{book.tag}</Box>
+                    <Box style={styles.genreRibbon}>{trimChars(book.tag, 8)}</Box>
                     <Box
                       onClick={() => {
                         if (query.trim()) {
