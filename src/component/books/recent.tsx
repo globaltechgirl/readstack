@@ -375,7 +375,7 @@ const Recent: FC = () => {
                         ...styles.bookmark,
                         ...(hovered === idx ? styles.bookmarkVisible : {}),
                       }}
-                      onClick={() => navigate(`/categories/${book.isbn}`, { state: { book } })}
+                      onClick={() => navigate(`/category/${book.isbn}`, { state: { book } })}
                     >
                       <Box
                         onClick={(e) => {

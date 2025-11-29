@@ -33,10 +33,8 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: 6,
     display: "flex",
     flexDirection: "column",
-    gap: 45,
-    padding: 20,
+    padding: "40px 20px 20px 20px",
     width: "100%",
-    height: "100%",   
   },
   viewSection: {
     display: "flex",
@@ -52,7 +50,7 @@ const styles: Record<string, CSSProperties> = {
   },
   bookImage: {
     width: 180,
-    height: 190,
+    height: 260,
     objectFit: "cover",
     border: "0.5px solid var(--border-200)",
     backgroundColor: "var(--light-100)",
@@ -61,7 +59,6 @@ const styles: Record<string, CSSProperties> = {
     transform: "rotateY(-2deg)",
     cursor: "pointer",
     zIndex: 2,
-    marginBottom: -80,
     marginLeft: 70,
   },
   bookInfo: {
@@ -105,7 +102,7 @@ const styles: Record<string, CSSProperties> = {
     flexDirection: "column",
     position: "relative",
     zIndex: 1,
-    minHeight: 200,
+    marginTop: "-80px",
   },
   bottomWrapper: {
     backgroundColor: "var(--light-100)",
@@ -264,7 +261,7 @@ const formatDate = (dateString?: string) => {
 
 const View: FC = () => {
   const location = useLocation();
-  const { id } = useParams<{ id: string }>();
+  const { bookId } = useParams<{ bookId: string }>();
   const { fetchBookDetails, loading } = useShelves();
 
   const [book, setBook] = useState<Shelves | null>(null);
@@ -278,7 +275,7 @@ const View: FC = () => {
     try {
       let data: Shelves | null = null;
 
-      if (id) data = await fetchBookDetails(id);
+      if (bookId) data = await fetchBookDetails(bookId);
 
       if (!data && location.state) {
         const fallback = location.state as Shelves;
@@ -296,7 +293,7 @@ const View: FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [bookId]);
 
   const googleLink = book?.readLinks?.find(link => link.platform.toLowerCase().includes("google"))?.url;
 
@@ -358,7 +355,7 @@ const View: FC = () => {
                       <Box style={styles.detailsWrapper}>
                         <Box style={styles.detailsBox}>
                           <Text style={styles.detailLabel}>Genres</Text>
-                          <Text style={styles.detailValue}>{book.categories || "-"}</Text>
+                          <Text style={styles.detailValue}>{book.categories?.length ? book.categories.join(", ") : "-"}</Text>
                         </Box>
 
                         <Box style={styles.detailsBox}>

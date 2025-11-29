@@ -2,10 +2,10 @@ import type { FC, CSSProperties } from "react";
 import { useState, useEffect } from "react";
 import { Box, Text } from "@mantine/core";
 import { motion, AnimatePresence } from "framer-motion";
+import { ROUTES } from "@/utils/constants"; 
 
 import SunIcon from "@/assets/icons/sun";
 import MoonIcon from "@/assets/icons/moon";
-import NotificationIcon from "@/assets/icons/notification";
 import SearchIcon from "@/assets/icons/search";
 
 const styles: Record<string, CSSProperties> = {
@@ -90,11 +90,13 @@ interface InfoProps {
 }
 
 const Info: FC<InfoProps> = ({ query, setQuery }) => {
+  const showSearch = [ROUTES.BOOKS.ROOT, ROUTES.BOOKS.ALL].includes(location.pathname);
+  
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("theme") === "dark";
     }
-    return false;
+    return false; 
   });
 
   useEffect(() => {
@@ -113,19 +115,19 @@ const Info: FC<InfoProps> = ({ query, setQuery }) => {
         <Text style={styles.logoText}>Readstack</Text>
 
         <Box style={styles.rightIconsWrapper}>
-          {/* Search Input */}
-          <Box style={styles.searchWrapper}>
-            <SearchIcon style={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search"
-              style={styles.input}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </Box>
+          {showSearch && (
+            <Box style={styles.searchWrapper}>
+              <SearchIcon style={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Search"
+                style={styles.input}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </Box>
+          )}
 
-          {/* Dark Mode Toggle */}
           <Box style={styles.iconWrapper}>
             <motion.div style={styles.iconBox} onClick={() => setDarkMode(!darkMode)} layout>
               <AnimatePresence mode="wait" initial={false}>
@@ -144,13 +146,6 @@ const Info: FC<InfoProps> = ({ query, setQuery }) => {
                 </motion.div>
               </AnimatePresence>
             </motion.div>
-          </Box>
-
-          {/* Notification Icon */}
-          <Box style={styles.iconWrapper}>
-            <Box style={styles.iconBox}>
-              <NotificationIcon style={styles.iconInner} />
-            </Box>
           </Box>
         </Box>
       </Box>

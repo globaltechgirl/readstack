@@ -4,8 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import ArrowLeft from "@/assets/icons/arrowLeft";
 import ArrowRight from "@/assets/icons/arrowRight";
-import HeartFill from "@/assets/icons/heartFill";
-import HeartFull from "@/assets/icons/heartFull";
 import Info from "../layout/info";
 import useShelves from "@/hooks/use-shelves";
 import { Shelves } from "@/types/shelves";
@@ -79,7 +77,6 @@ const styles: Record<string, CSSProperties> = {
     border: "0.5px solid var(--border-200)",
     backgroundColor: "var(--light-100)",
     objectFit: "cover",
-    cursor: "pointer",
   },
   overlay: {
     position: "absolute",
@@ -183,14 +180,10 @@ const AllBooks: FC = () => {
   const { searchForBooks, fetchFeaturedBooks, loading } = useShelves();
 
   const [hovered, setHovered] = useState<number | null>(null);
-  const [favorites, setFavorites] = useState<number[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const booksPerPage = 12;
-
-  const toggleFavorite = (idx: number) =>
-    setFavorites(prev => (prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]));
 
   const totalPages = Math.max(1, Math.ceil(books.length / booksPerPage));
   const currentBooks = books.slice((page - 1) * booksPerPage, page * booksPerPage);
@@ -270,21 +263,34 @@ const AllBooks: FC = () => {
                 <Box key={book.id} style={styles.bookCard} onMouseEnter={() => setHovered(idx)} onMouseLeave={() => setHovered(null)}>
                   <Box style={styles.bookWrapper}>
                     <Box style={styles.bookMain}>
-                      <Image src={book.image} alt={book.title} style={styles.bookImage} />
+                      <Image
+                        src={book.image}
+                        alt={book.title}
+                        style={{
+                          ...styles.bookImage,
+                          cursor: query.trim() ? "pointer" : "default",
+                        }}
+                        onClick={() => {
+                          if (query.trim()) {
+                            navigate(`/search/${book.id}`, { state: { book } });
+                          }
+                        }}
+                      />
                     </Box>
                     <Box style={styles.genreRibbon}>{book.tag}</Box>
                     <Box
-                      style={{ ...styles.overlay, ...(hovered === idx ? styles.overlayVisible : {}) }}
-                      onClick={() => navigate(`/books/${book.id}`, { state: { book } })}
+                      onClick={() => {
+                        if (query.trim()) {
+                          navigate(`/search/${book.id}`, { state: { book } });
+                        }
+                      }}
+                      style={{
+                        ...styles.overlay,
+                        ...(hovered === idx ? styles.overlayVisible : {}),
+                        cursor: query.trim() ? "pointer" : "default",
+                        pointerEvents: query.trim() ? "auto" : "none",
+                      }}
                     >
-                      <Box
-                        onClick={e => {
-                          e.stopPropagation();
-                          toggleFavorite(idx);
-                        }}
-                      >
-                        {favorites.includes(idx) ? <HeartFull style={styles.overlayIcon} /> : <HeartFill style={styles.overlayIcon} />}
-                      </Box>
                     </Box>
                   </Box>
                   <Box style={styles.bookTexts}>

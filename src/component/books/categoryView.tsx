@@ -275,7 +275,7 @@ interface BookDisplay {
   progress?: number;
 }
 
-const View: FC = () => {
+const CategoryView: FC = () => {
   const { fetchAllShelves } = useShelves();
   const { isbn } = useParams<{ isbn: string }>();
   const [, setAllBooks] = useState<BookDisplay[]>([]);
@@ -448,4 +448,4 @@ const View: FC = () => {
   );
 };
 
-export default View;
+export default CategoryView;

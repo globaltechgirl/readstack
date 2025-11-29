@@ -11,7 +11,8 @@ import AllBooks from "@/component/books/all";
 import RecentBooks from "@/component/books/recent";
 import CompletedBooks from "@/component/books/completed";
 import WishlistBooks from "@/component/books/wishlist";
-import BookView from "@/component/books/view";
+import SearchView from "@/component/books/searchView";
+import CategoryView from "@/component/books/categoryView";
 
 import Shelves from "@/pages/shelves";
 import FictionShelves from "@/component/shelves/fiction";
@@ -45,8 +46,8 @@ const router = createBrowserRouter([
           { path: "books/recent", element: <RecentBooks /> },
           { path: "books/completed", element: <CompletedBooks /> },
           { path: "books/wishlist", element: <WishlistBooks /> },
-          { path: "books/:isbn", element: <BookView /> },
-          { path: "categories/:isbn", element: <BookView /> },
+          { path: "search/:bookId", element: <SearchView /> },
+          { path: "category/:isbn", element: <CategoryView /> },
 
           { path: "shelves", element: <Shelves /> },
           { path: "shelves/fiction", element: <FictionShelves /> },

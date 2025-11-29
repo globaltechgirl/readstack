@@ -374,7 +374,7 @@ const Completed: FC = () => {
                         ...styles.bookmark,
                         ...(hovered === idx ? styles.bookmarkVisible : {}),
                       }}
-                      onClick={() => navigate(`/categories/${book.id}`, { state: { book } })}
+                      onClick={() => navigate(`/category/${book.id}`, { state: { book } })}
                     >
                       <Box
                         onClick={(e) => {
