@@ -1,4 +1,4 @@
-import { type FC, useState, useRef, type CSSProperties } from "react";
+import { type FC, useState, useRef, type CSSProperties, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Box, Avatar, Text } from "@mantine/core";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,8 @@ import SidebarIcon from "@/assets/icons/sidebar";
 import UnfoldIcon from "@/assets/icons/unfold";
 import ArrowDownIcon from "@/assets/icons/arrowDown";
 import useUser from "@/hooks/use-user";
+import useShelves from "@/hooks/use-shelves";
+import { TOP_FICTION_GENRES, TOP_NON_FICTION_GENRES, TOP_AUDIOBOOKS_GENRES } from "@/types/genres";
 
 const styles: Record<string, CSSProperties> = {
   wrapper: {
@@ -183,6 +185,14 @@ const getNavLinkStyle = (isActive: boolean): CSSProperties => ({
   color: isActive ? "var(--dark-200)" : "var(--dark-100)",
 });
 
+interface Book {
+  id: string;
+  image: string;
+  title: string;
+  author: string;
+  tag: string;
+}
+
 interface MainbarProps {
   onSidebarClick?: () => void;
 }
@@ -193,8 +203,76 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const { user } = useUser();
+  const { fetchAllShelves, fetchFeaturedBooks } = useShelves();
 
-  const toggleDropdown = (label: string) => setOpenDropdown(prev => (prev === label ? null : label));
+  const [bookCounts, setBookCounts] = useState<Record<string, number>>({});
+
+  const toggleDropdown = (label: string) =>
+    setOpenDropdown((prev) => (prev === label ? null : label));
+
+  const normalize = (g: string) => g.toLowerCase().replace(/[-\s]/g, "");
+
+  const loadCounts = async () => {
+    try {
+      const shelvesResponse = await fetchAllShelves();
+
+      const combinedBooks = [
+        ...(shelvesResponse?.currentlyReading ?? []),
+        ...(shelvesResponse?.wantToRead ?? []),
+        ...(shelvesResponse?.read ?? []),
+      ];
+
+      const allBooks = combinedBooks.map((item) => ({
+        genre: String(
+          item.book?.genre ??
+            item.book?.categories?.[0] ??
+            item.userBook?.categories?.[0] ??
+            "Unknown"
+        ),
+      }));
+
+      const fictionCount = allBooks.filter((book) => {
+        const g = normalize(book.genre);
+        return TOP_FICTION_GENRES.some((fx) => g.includes(normalize(fx)));
+      }).length;
+
+      const nonFictionCount = allBooks.filter((book) => {
+        const g = normalize(book.genre);
+        return TOP_NON_FICTION_GENRES.some((nfx) => g.includes(normalize(nfx)));
+      }).length;
+
+      const audiobookCount = allBooks.filter((book) => {
+        const g = normalize(book.genre);
+        return TOP_AUDIOBOOKS_GENRES.some((ab) => g.includes(normalize(ab)));
+      }).length;
+
+      const featured = await fetchFeaturedBooks();
+      const featuredBooks: Book[] = (featured || []).map((shelf) => ({
+        id: shelf.bookId || String(shelf.id || Math.random()),
+        image: shelf.coverImageUrl || "/placeholder-book.png",
+        title: shelf.title || "No title",
+        author: Array.isArray(shelf.authors) ? shelf.authors.join(", ") : "Unknown",
+        tag: shelf.categories?.[0] || "Unknown",
+      }));
+
+      setBookCounts({
+        All: featuredBooks.length, 
+        Completed: shelvesResponse?.read?.length || 0,
+        Recent: shelvesResponse?.currentlyReading?.length || 0,
+        Wishlist: shelvesResponse?.wantToRead?.length || 0,
+        Fiction: fictionCount,
+        "NonFiction": nonFictionCount, 
+        Audiobooks: audiobookCount,
+      });
+    } catch (err) {
+      console.error("Failed to fetch book counts:", err);
+      setBookCounts((prev) => ({ ...prev, AllBooks: 0 }));
+    }
+  };
+
+  useEffect(() => {
+    loadCounts();
+  }, []);
 
   return (
     <Box style={styles.wrapper}>
@@ -239,7 +317,10 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
                       <ArrowDownIcon
                         width={9}
                         height={9}
-                        style={{ ...styles.arrowIcon, transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                        style={{
+                          ...styles.arrowIcon,
+                          transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                        }}
                       />
                     </Box>
                   )}
@@ -265,7 +346,7 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
                           })}
                         >
                           <Text style={styles.dropdownText}>{subLabel}</Text>
-                          <Box style={styles.countBox}>10</Box>
+                          {subLabel !== "Addition" && (<Box style={styles.countBox}>{bookCounts[subLabel] ?? 0}</Box> )}
                         </NavLink>
                       ))}
                     </motion.div>
@@ -304,8 +385,12 @@ const Mainbar: FC<MainbarProps> = ({ onSidebarClick }) => {
               transition={{ duration: 0.25, ease: "easeOut" }}
               style={styles.logoutDropdown}
               onClick={() => setPopoverOpened(false)}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--red-light)")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--white)")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "var(--red-light)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "var(--white)")
+              }
             >
               Logout
             </motion.div>

@@ -1,4 +1,4 @@
-import { type FC, type CSSProperties, useState, useEffect } from "react";
+import { type FC, type CSSProperties, useState, useEffect, useRef } from "react";
 import { Box, Text, Image, Button, Flex, Stack, Center } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 
@@ -179,7 +179,7 @@ interface Book {
   tag: string;
 }
 
-const AllBooks: FC = () => {
+const All: FC = () => {
   const navigate = useNavigate();
   const { searchForBooks, fetchFeaturedBooks, loading } = useShelves();
 
@@ -189,6 +189,8 @@ const AllBooks: FC = () => {
   const [page, setPage] = useState(1);
   const booksPerPage = 12;
 
+  const booksGridRef = useRef<HTMLDivElement | null>(null);
+
   const totalPages = Math.max(1, Math.ceil(books.length / booksPerPage));
   const currentBooks = books.slice((page - 1) * booksPerPage, page * booksPerPage);
 
@@ -196,27 +198,30 @@ const AllBooks: FC = () => {
   const handleNext = () => setPage(prev => Math.min(prev + 1, totalPages));
 
   useEffect(() => {
-    if (!query.trim()) {
-      const fetchFeatured = async () => {
-        try {
-          const featured = await fetchFeaturedBooks();
-          const featuredBooks: Book[] = featured.map(shelf => ({
-            id: shelf.bookId || String(shelf.id || Math.random()),
-            image: shelf.coverImageUrl || "/placeholder-book.png",
-            title: shelf.title || "No title",
-            author: Array.isArray(shelf.authors) ? shelf.authors.join(", ") : "Unknown",
-            tag: shelf.categories?.[0] || "Unknown",
-          }));
-          setBooks(featuredBooks);
-        } catch (error) {
-          console.error("Failed to fetch featured books:", error);
-          setBooks([]);
-        }
-      };
-      fetchFeatured();
-      setPage(1);
-    }
-  }, [query, fetchFeaturedBooks]);
+    booksGridRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [page]);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const featured = await fetchFeaturedBooks();
+        const featuredBooks: Book[] = featured.map(shelf => ({
+          id: shelf.bookId || String(shelf.id || Math.random()),
+          image: shelf.coverImageUrl || "/placeholder-book.png",
+          title: shelf.title || "No title",
+          author: Array.isArray(shelf.authors) ? shelf.authors.join(", ") : "Unknown",
+          tag: shelf.categories?.[0] || "Unknown",
+        }));
+        setBooks(featuredBooks);
+        setPage(1);
+      } catch (error) {
+        console.error("Failed to fetch featured books:", error);
+        setBooks([]);
+      }
+    };
+
+    if (!query.trim()) fetchFeatured();
+  }, []); 
 
   useEffect(() => {
     const handler = setTimeout(async () => {
@@ -239,6 +244,7 @@ const AllBooks: FC = () => {
       } catch (error) {
         console.error("Search error:", error);
         setBooks([]);
+        setPage(1);
       }
     }, 500);
 
@@ -267,9 +273,14 @@ const AllBooks: FC = () => {
               </Text>
             </Center>
           ) : (
-            <Box style={styles.booksGrid}>
+            <Box style={styles.booksGrid} ref={booksGridRef}>
               {currentBooks.map((book, idx) => (
-                <Box key={book.id} style={styles.bookCard} onMouseEnter={() => setHovered(idx)} onMouseLeave={() => setHovered(null)}>
+                <Box
+                  key={book.id}
+                  style={styles.bookCard}
+                  onMouseEnter={() => setHovered(idx)}
+                  onMouseLeave={() => setHovered(null)}
+                >
                   <Box style={styles.bookWrapper}>
                     <Box style={styles.bookMain}>
                       <Image
@@ -299,8 +310,7 @@ const AllBooks: FC = () => {
                         cursor: query.trim() ? "pointer" : "default",
                         pointerEvents: query.trim() ? "auto" : "none",
                       }}
-                    >
-                    </Box>
+                    ></Box>
                   </Box>
                   <Box style={styles.bookTexts}>
                     <Text style={styles.bookTitle}>{book.title}</Text>
@@ -310,13 +320,25 @@ const AllBooks: FC = () => {
               ))}
 
               {books.length > 0 && (
-                <Flex style={{...styles.paginationContainer, gridColumn: "1 / -1", }}>
+                <Flex style={{ ...styles.paginationContainer, gridColumn: "1 / -1" }}>
                   <Flex gap={4} align="center">
-                    <Button size="17.5" variant="outline" disabled={page === 1} onClick={handlePrev} styles={{ root: styles.paginationButton }}>
+                    <Button
+                      size="17.5"
+                      variant="outline"
+                      disabled={page === 1}
+                      onClick={handlePrev}
+                      styles={{ root: styles.paginationButton }}
+                    >
                       <ArrowLeft width={10} height={10} />
                     </Button>
                     <Text style={styles.paginationText}>{page}</Text>
-                    <Button size="17.5" variant="outline" disabled={page === totalPages} onClick={handleNext} styles={{ root: styles.paginationButton }}>
+                    <Button
+                      size="17.5"
+                      variant="outline"
+                      disabled={page === totalPages}
+                      onClick={handleNext}
+                      styles={{ root: styles.paginationButton }}
+                    >
                       <ArrowRight width={10} height={10} />
                     </Button>
                   </Flex>
@@ -330,4 +352,4 @@ const AllBooks: FC = () => {
   );
 };
 
-export default AllBooks;
+export default All;

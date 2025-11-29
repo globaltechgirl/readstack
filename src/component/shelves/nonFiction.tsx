@@ -6,6 +6,7 @@ import ArrowRight from "@/assets/icons/arrowRight";
 import useShelves from "@/hooks/use-shelves";
 import Info from "../layout/info";
 import { ApiBook, ShelvesResponse } from "@/types/shelves";
+import { TOP_NON_FICTION_GENRES } from "@/types/genres";
 
 const styles: Record<string, CSSProperties> = {
   nonfictionBody: {
@@ -209,19 +210,6 @@ interface BookDisplay {
   rating: number;
   progress: number;
 }
-
-const TOP_NON_FICTION_GENRES = [
-  "Biography",
-  "Memoir",
-  "Self-help",
-  "History",
-  "Science",
-  "Travel",
-  "True Crime",
-  "Philosophy",
-  "Health & Fitness",
-  "Business"
-];
 
 const NonFiction: FC = () => {
   const { fetchAllShelves, loading } = useShelves();

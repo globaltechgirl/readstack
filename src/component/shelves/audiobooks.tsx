@@ -6,6 +6,7 @@ import ArrowRight from "@/assets/icons/arrowRight";
 import useShelves from "@/hooks/use-shelves";
 import Info from "../layout/info";
 import { ApiBook, ShelvesResponse } from "@/types/shelves";
+import { TOP_AUDIOBOOKS_GENRES } from "@/types/genres";
 
 const styles: Record<string, CSSProperties> = {
   audiobooksBody: {
@@ -209,10 +210,6 @@ interface BookDisplay {
   rating: number;
   progress: number;
 }
-
-const TOP_AUDIOBOOKS_GENRES = [
-  "Audiobooks",
-];
 
 const Audiobooks: FC = () => {
   const { fetchAllShelves, loading } = useShelves();

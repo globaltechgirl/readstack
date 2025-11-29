@@ -7,7 +7,7 @@ import Home from "@/pages/home";
 import Overview from "@/pages/overview";
 
 import Books from "@/pages/books";
-import AllBooks from "@/component/books/all";
+import All from "@/component/books/all";
 import RecentBooks from "@/component/books/recent";
 import CompletedBooks from "@/component/books/completed";
 import WishlistBooks from "@/component/books/wishlist";
@@ -42,7 +42,7 @@ const router = createBrowserRouter([
           { path: "overview", element: <Overview /> },
 
           { path: "books", element: <Books /> },
-          { path: "books/all", element: <AllBooks /> },
+          { path: "books/all", element: <All /> },
           { path: "books/recent", element: <RecentBooks /> },
           { path: "books/completed", element: <CompletedBooks /> },
           { path: "books/wishlist", element: <WishlistBooks /> },

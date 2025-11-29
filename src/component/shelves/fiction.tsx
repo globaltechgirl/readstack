@@ -6,6 +6,7 @@ import ArrowRight from "@/assets/icons/arrowRight";
 import useShelves from "@/hooks/use-shelves";
 import Info from "../layout/info";
 import { ApiBook, ShelvesResponse } from "@/types/shelves";
+import { TOP_FICTION_GENRES } from "@/types/genres";
 
 const styles: Record<string, CSSProperties> = {
   fictionBody: {
@@ -209,19 +210,6 @@ interface BookDisplay {
   rating: number;
   progress: number;
 }
-
-const TOP_FICTION_GENRES = [
-  "Fantasy",
-  "Science Fiction",
-  "Mystery",
-  "Thriller",
-  "Romance",
-  "Historical Fiction",
-  "Horror",
-  "Young Adult",
-  "Adventure",
-  "Dystopian",
-];
 
 const Fiction: FC = () => {
   const { fetchAllShelves, loading } = useShelves();
